@@ -12,6 +12,6 @@ namespace AssistantProcessor.Models
         public List<RowAnalized> comments;
         public List<RowAnalized> project;
         public int number;
-
+        public bool formed;
     }
 }

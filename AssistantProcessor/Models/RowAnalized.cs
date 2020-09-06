@@ -8,6 +8,7 @@ namespace AssistantProcessor.Models
     {
         public RowType rowType;
         public int rowNumber;
+        public string rowId;
         public List<int> nativeNumbers;
         public bool includedToAnalysis;
         public string content;
