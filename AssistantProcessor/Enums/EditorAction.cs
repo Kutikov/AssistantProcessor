@@ -1,4 +1,4 @@
-﻿namespace AssistantProcessor.Models
+﻿namespace AssistantProcessor.Enums
 {
     public enum EditorAction
     {

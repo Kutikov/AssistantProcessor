@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using AssistantProcessor.Models;
+﻿using AssistantProcessor.Models;
 
 namespace AssistantProcessor.Interfaces
 {
     public interface ITestChangedObserver
     {
-        public void OnTestAdded(AnalyseBlock analyseBlock);
-        public void OnTestDeleted(AnalyseBlock analyseBlock);
-        public void OnTestFormed(AnalyseBlock analyseBlock);
+        public void OnTestAdded(TestAnalized analyseBlock);
+        public void OnTestDeleted(TestAnalized analyseBlock);
+        public void OnTestFormed(TestAnalized analyseBlock);
     }
 }

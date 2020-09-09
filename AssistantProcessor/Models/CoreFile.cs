@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using AssistantProcessor.Enums;
 using AssistantProcessor.Interfaces;
 using Newtonsoft.Json;
 
@@ -13,7 +14,7 @@ namespace AssistantProcessor.Models
         public List<RowNative> rowNatives;
         public ParseType ParseType;
         public List<RowAnalized> Rows;
-        private List<AnalyseBlock> AnalyseBlocks;
+        private List<TestAnalized> AnalyseBlocks;
 
         [JsonIgnore]
         private Stack<KeyValuePair<int, List<EditorAction>>> editorActions;
@@ -22,7 +23,7 @@ namespace AssistantProcessor.Models
         [JsonIgnore]
         private bool record;
         [JsonIgnore]
-        private Dictionary<int, List<AnalyseBlock>> analyseBlocks;
+        private Dictionary<int, List<TestAnalized>> analyseBlocks;
         [JsonIgnore]
         private Dictionary<int, List<RowAnalized>> rowAnalizeds;
 
@@ -41,9 +42,9 @@ namespace AssistantProcessor.Models
             actionNumbers = new Queue<int>();
             actionNumbers.Enqueue(0);
             rowNatives = new List<RowNative>();
-            analyseBlocks = new Dictionary<int, List<AnalyseBlock>>
+            analyseBlocks = new Dictionary<int, List<TestAnalized>>
             {
-                {0, new List<AnalyseBlock>()}
+                {0, new List<TestAnalized>()}
             };
             rowAnalizeds = new Dictionary<int, List<RowAnalized>>
             {
@@ -71,7 +72,7 @@ namespace AssistantProcessor.Models
             coreFile.actionNumbers = new Queue<int>();
             coreFile.actionNumbers.Enqueue(0);
             coreFile.rowNatives = new List<RowNative>();
-            coreFile.analyseBlocks = new Dictionary<int, List<AnalyseBlock>>
+            coreFile.analyseBlocks = new Dictionary<int, List<TestAnalized>>
             {
                 {0, coreFile.AnalyseBlocks}
             };
@@ -96,7 +97,7 @@ namespace AssistantProcessor.Models
                 }));
                 analyseBlocks.Remove(order - 3);
                 rowAnalizeds.Remove(order - 3);
-                analyseBlocks.Add(order, JsonConvert.DeserializeObject<List<AnalyseBlock>>(JsonConvert.SerializeObject(analyseBlocks.ElementAt(0).Value)));
+                analyseBlocks.Add(order, JsonConvert.DeserializeObject<List<TestAnalized>>(JsonConvert.SerializeObject(analyseBlocks.ElementAt(0).Value)));
                 rowAnalizeds.Add(order, JsonConvert.DeserializeObject<List<RowAnalized>>(JsonConvert.SerializeObject(rowAnalizeds.ElementAt(0).Value)));
                 record = true;
             }
@@ -146,18 +147,18 @@ namespace AssistantProcessor.Models
             FixAction(EditorAction.ROW_TYPE_CHAHGED);
         }
 
-        public void OnTestAdded(AnalyseBlock analyseBlock)
+        public void OnTestAdded(TestAnalized analyseBlock)
         {
            analyseBlocks.ElementAt(0).Value.Add(analyseBlock);
         }
 
-        public void OnTestDeleted(AnalyseBlock analyseBlock)
+        public void OnTestDeleted(TestAnalized analyseBlock)
         {
             FixAction(EditorAction.TEST_DELETED);
             analyseBlocks.ElementAt(0).Value.Remove(analyseBlock);
         }
 
-        public void OnTestFormed(AnalyseBlock analyseBlock)
+        public void OnTestFormed(TestAnalized analyseBlock)
         {
             FixAction(EditorAction.TEST_FORMED);
             analyseBlocks.ElementAt(0).Value.Add(analyseBlock);
