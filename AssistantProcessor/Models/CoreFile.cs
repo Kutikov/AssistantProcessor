@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AssistantProcessor.Enums;
 using AssistantProcessor.Interfaces;
@@ -6,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace AssistantProcessor.Models
 {
-    public class CoreFile : IRowChangedObserver, ITestChangedObserver
+    public class CoreFile : IRowChangedObserver, ITestChangedObserver, IUndoRedoObject
     {
         public string fileSource;
         public string content;
@@ -14,19 +15,13 @@ namespace AssistantProcessor.Models
         public List<RowNative> rowNatives;
         public ParseType ParseType;
         public List<RowAnalized> Rows;
-        private List<TestAnalized> AnalyseBlocks;
+        public List<TestAnalized> AnalyseBlocks;
+        public List<string> rowsIdsOrdered;
+        public List<string> testIdsOrdered;
+        private ActionBlock actionBlock;
 
-        [JsonIgnore]
-        private Stack<KeyValuePair<int, List<EditorAction>>> editorActions;
-        [JsonIgnore]
-        private Queue<int> actionNumbers;
-        [JsonIgnore]
-        private bool record;
-        [JsonIgnore]
-        private Dictionary<int, List<TestAnalized>> analyseBlocks;
-        [JsonIgnore]
-        private Dictionary<int, List<RowAnalized>> rowAnalizeds;
-
+        [JsonIgnore] public Stack<ActionBlock> actionsActionBlocksPrev;
+        [JsonIgnore] public Stack<ActionBlock> actionsActionBlocksNext;
         [JsonIgnore] public List<IRowChangedObserver> IRowChangedObservers;
         [JsonIgnore] public List<ITestChangedObserver> ITestChangedObservers;
 
@@ -36,79 +31,57 @@ namespace AssistantProcessor.Models
             this.content = content;
             this.fileSource = fileSource;
             this.filterPatterns = filterPatterns;
-            this.ParseType = parseType;
-            editorActions = new Stack<KeyValuePair<int, List<EditorAction>>>();
-            editorActions.Push(new KeyValuePair<int, List<EditorAction>>(0, new List<EditorAction>()));
-            actionNumbers = new Queue<int>();
-            actionNumbers.Enqueue(0);
-            rowNatives = new List<RowNative>();
-            analyseBlocks = new Dictionary<int, List<TestAnalized>>
-            {
-                {0, new List<TestAnalized>()}
-            };
-            rowAnalizeds = new Dictionary<int, List<RowAnalized>>
-            {
-                {0, new List<RowAnalized>()}
-            };
+            ParseType = parseType;
+            rowsIdsOrdered = new List<string>();
+            testIdsOrdered = new List<string>();
             ITestChangedObservers = new List<ITestChangedObserver>();
             IRowChangedObservers = new List<IRowChangedObserver>();
+            actionsActionBlocksNext = new Stack<ActionBlock>();
+            actionsActionBlocksPrev = new Stack<ActionBlock>();
         }
         #nullable disable
 
         public string Encode()
         {
-            int order = actionNumbers.Peek();
-            Rows = rowAnalizeds[order];
-            AnalyseBlocks = analyseBlocks[order];
             return JsonConvert.SerializeObject(this);
         }
 
         public static CoreFile Decode(string source)
         {
             CoreFile coreFile = JsonConvert.DeserializeObject<CoreFile>(source);
-
-            coreFile.editorActions = new Stack<KeyValuePair<int, List<EditorAction>>>();
-            coreFile.editorActions.Push(new KeyValuePair<int, List<EditorAction>>(0, new List<EditorAction>()));
-            coreFile.actionNumbers = new Queue<int>();
-            coreFile.actionNumbers.Enqueue(0);
-            coreFile.rowNatives = new List<RowNative>();
-            coreFile.analyseBlocks = new Dictionary<int, List<TestAnalized>>
-            {
-                {0, coreFile.AnalyseBlocks}
-            };
-            coreFile.rowAnalizeds = new Dictionary<int, List<RowAnalized>>
-            {
-                {0, coreFile.Rows}
-            };
             coreFile.ITestChangedObservers = new List<ITestChangedObserver>();
             coreFile.IRowChangedObservers = new List<IRowChangedObserver>();
+            coreFile.actionsActionBlocksNext = new Stack<ActionBlock>();
+            coreFile.actionsActionBlocksPrev = new Stack<ActionBlock>();
             return coreFile;
         }
 
-        private void FixAction(EditorAction editorAction)
+        private void FixAction(EditorAction editorAction, ObjectMemento objectMemento)
         {
-            if (!record)
-            {
-                int order = actionNumbers.Dequeue() + 3;
-                actionNumbers.Enqueue(order);
-                editorActions.Push(new KeyValuePair<int, List<EditorAction>>(order, new List<EditorAction>
-                {
-                    editorAction
-                }));
-                analyseBlocks.Remove(order - 3);
-                rowAnalizeds.Remove(order - 3);
-                analyseBlocks.Add(order, JsonConvert.DeserializeObject<List<TestAnalized>>(JsonConvert.SerializeObject(analyseBlocks.ElementAt(0).Value)));
-                rowAnalizeds.Add(order, JsonConvert.DeserializeObject<List<RowAnalized>>(JsonConvert.SerializeObject(rowAnalizeds.ElementAt(0).Value)));
-                record = true;
-            }
-            else
-            {
-                editorActions.Peek().Value.Add(editorAction);
-            }
         }
+
+        private void FinishAction()
+        {
+            actionsActionBlocksPrev.Push(actionBlock.Clone());
+            actionBlock = null;
+        }
+
         public bool Undo()
         {
+            if (actionsActionBlocksPrev.TryPop(out ActionBlock result))
+            {
+                //restore
+                return true;
+            }
+            return false;
+        }
 
+        public bool Redo()
+        {
+            if (actionsActionBlocksNext.TryPop(out ActionBlock result))
+            {
+                return true;
+            }
             return false;
         }
 
@@ -119,49 +92,149 @@ namespace AssistantProcessor.Models
 
         public void OnRowConcatenated(string rowId)
         {
-            FixAction(EditorAction.ROW_CONCATENATED);
+            RowAnalized rowAnalized = Rows.Find(x => x.rowId == rowId);
+            int nextRow = rowsIdsOrdered.IndexOf(rowId) + 1;
+            if (nextRow < rowsIdsOrdered.Count)
+            {
+                RowAnalized rowNext = Rows.Find(x => x.rowId == rowsIdsOrdered[nextRow]);
+                if (rowAnalized != null)
+                {
+                    ObjectMemento o1 = rowAnalized.SaveState();
+                    if (rowNext != null)
+                    {
+                        ObjectMemento o2 = rowNext.SaveState();
+                        rowAnalized.visibleEditedContent = rowAnalized.visibleEditedContent + rowNext.hiddenContent +
+                                                           rowNext.visibleEditedContent;
+                        rowNext.includedToAnalysis = false;
+                        actionBlock = new ActionBlock();
+                        actionBlock.AddAction(EditorAction.ROW_CONCATENATED, o1);
+                        actionBlock.AddAction(EditorAction.ROW_CONCATENATED, o2);
+                        FinishAction();
+                    }
+                }
+            }
         }
 
         public void OnRowDiversed(string rowId)
         {
-            FixAction(EditorAction.ROW_DIVERSED);
+            FixAction(EditorAction.ROW_DIVERSED, null);
         }
 
         public void OnRowDeleted(string rowId)
         {
-            FixAction(EditorAction.ROW_DELETED);
+            RowAnalized rowAnalized = Rows.Find(x => x.rowId == rowId);
+            if (rowAnalized != null)
+            {
+                ObjectMemento o1 = SaveState();
+                ObjectMemento o2 = rowAnalized.SaveState();
+                rowAnalized.includedToAnalysis = false;
+                actionBlock = new ActionBlock();
+                actionBlock.AddAction(EditorAction.ROW_DELETED, o1);
+                actionBlock.AddAction(EditorAction.ROW_DELETED, o2);
+                FinishAction();
+            }
         }
 
         public void OnRowMovedNext(string rowId)
         {
-            FixAction(EditorAction.ROW_MOVED_NEXT);
+            RowAnalized rowAnalized = Rows.Find(x => x.rowId == rowId);
+            if (rowAnalized != null)
+            {
+                ObjectMemento o1 = SaveState();
+                ObjectMemento o2 = rowAnalized.SaveState();
+                int nextTest = testIdsOrdered.IndexOf(rowAnalized.testId) + 1;
+                TestAnalized test = AnalyseBlocks.FirstOrDefault(x => x.taskId == testIdsOrdered[nextTest - 1]);
+                if (test != null)
+                {
+                    ObjectMemento o3 = test.SaveState();
+                    test.comments.Remove(rowId);
+                    test.correctAnswers.Remove(rowId);
+                    test.wrongAnswers.Remove(rowId);
+                    test.task.Remove(rowId);
+                    test.project.Remove(rowId);
+                    rowAnalized.testId = testIdsOrdered[nextTest];
+                    actionBlock = new ActionBlock();
+                    actionBlock.AddAction(EditorAction.ROW_MOVED_NEXT, o1);
+                    actionBlock.AddAction(EditorAction.ROW_MOVED_NEXT, o2);
+                    actionBlock.AddAction(EditorAction.ROW_MOVED_NEXT, o3);
+                    FinishAction();
+                }
+                
+            }
         }
 
         public void OnRowMovedPrev(string rowId)
         {
-            FixAction(EditorAction.ROW_MOVED_PREV);
+            FixAction(EditorAction.ROW_MOVED_PREV, null);
         }
 
         public void OnRowTypeChanged(string rowId, RowType rowType)
         {
-            FixAction(EditorAction.ROW_TYPE_CHAHGED);
+            RowAnalized rowAnalized = Rows.Find(x => x.rowId == rowId);
+            if (rowAnalized != null)
+            {
+                ObjectMemento o2 = rowAnalized.SaveState();
+                int thisTest = testIdsOrdered.IndexOf(rowAnalized.testId);
+                TestAnalized test = AnalyseBlocks.FirstOrDefault(x => x.taskId == testIdsOrdered[thisTest]);
+                if (test != null)
+                {
+                    ObjectMemento o3 = test.SaveState();
+                    test.comments.Remove(rowId);
+                    test.correctAnswers.Remove(rowId);
+                    test.wrongAnswers.Remove(rowId);
+                    test.task.Remove(rowId);
+                    switch (rowType)
+                    {
+                        case RowType.COMMENT:
+                            test.comments.Add(rowId);
+                            break;
+                        case RowType.CORRECT_ANSWER:
+                            test.correctAnswers.Add(rowId);
+                            break;
+                        case RowType.TASK:
+                            test.wrongAnswers.Add(rowId);
+                            break;
+                        case RowType.WRONG_ANSWER:
+                            test.task.Add(rowId);
+                            break;
+                        default:
+                            break;
+                    }
+                    actionBlock = new ActionBlock();
+                    actionBlock.AddAction(EditorAction.ROW_TYPE_CHAHGED, o2);
+                    actionBlock.AddAction(EditorAction.ROW_TYPE_CHAHGED, o3);
+                    FinishAction();
+                }
+
+            }
         }
 
         public void OnTestAdded(TestAnalized analyseBlock)
         {
-           analyseBlocks.ElementAt(0).Value.Add(analyseBlock);
+           
         }
 
         public void OnTestDeleted(TestAnalized analyseBlock)
         {
-            FixAction(EditorAction.TEST_DELETED);
-            analyseBlocks.ElementAt(0).Value.Remove(analyseBlock);
+            FixAction(EditorAction.TEST_DELETED, null);
+            
         }
 
         public void OnTestFormed(TestAnalized analyseBlock)
         {
-            FixAction(EditorAction.TEST_FORMED);
-            analyseBlocks.ElementAt(0).Value.Add(analyseBlock);
+            FixAction(EditorAction.TEST_FORMED, null);
+            
+        }
+
+        public ObjectMemento SaveState()
+        {
+            return new IdsRowMemento(rowsIdsOrdered, testIdsOrdered);
+        }
+
+        public void RestoreState(ObjectMemento objectMemento)
+        {
+            rowsIdsOrdered = ((IdsRowMemento) objectMemento).IdsRList;
+            testIdsOrdered = ((IdsRowMemento) objectMemento).IdsTList;
         }
     }
 }
