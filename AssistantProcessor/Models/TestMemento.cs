@@ -11,8 +11,9 @@ namespace AssistantProcessor.Models
         public List<string> Project { get; }
         public int Number { get; }
         public bool Formed { get; }
+        public bool Included { get; }
 
-        public TestMemento(List<string> Task, List<string> CorrectAnswers, List<string> WrongAnswers, List<string> Comments, List<string> Project, int Number, bool Formed)
+        public TestMemento(List<string> Task, List<string> CorrectAnswers, List<string> WrongAnswers, List<string> Comments, List<string> Project, int Number, bool Formed, bool Included)
         {
             this.Comments = Comments;
             this.CorrectAnswers = CorrectAnswers;
@@ -21,6 +22,7 @@ namespace AssistantProcessor.Models
             this.Project = Project;
             this.WrongAnswers = WrongAnswers;
             this.Task = Task;
+            this.Included = Included;
         }
     }
 }

@@ -4,8 +4,8 @@ namespace AssistantProcessor.Interfaces
 {
     public interface ITestChangedObserver
     {
-        public void OnTestAdded(TestAnalized analyseBlock);
-        public void OnTestDeleted(TestAnalized analyseBlock);
-        public void OnTestFormed(TestAnalized analyseBlock);
+        public void OnTestAdded(TestAnalized test);
+        public void OnTestDeleted(string testId);
+        public void OnTestFormed(string testId);
     }
 }

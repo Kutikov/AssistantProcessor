@@ -11,12 +11,13 @@ namespace AssistantProcessor.Models
         public List<string> wrongAnswers;
         public List<string> comments;
         public List<string> project;
+        public bool included;
         public int number;
         public bool formed;
 
         public ObjectMemento SaveState()
         {
-            return new TestMemento(task, correctAnswers, wrongAnswers, comments, project, number, formed);
+            return new TestMemento(task, correctAnswers, wrongAnswers, comments, project, number, formed, included);
         }
 
         public void RestoreState(ObjectMemento objectMemento)
@@ -29,6 +30,7 @@ namespace AssistantProcessor.Models
             project = testMemento.Project;
             number = testMemento.Number;
             formed = testMemento.Formed;
+            included = testMemento.Included;
         }
     }
 }

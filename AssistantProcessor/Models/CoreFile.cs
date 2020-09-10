@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using AssistantProcessor.Enums;
 using AssistantProcessor.Interfaces;
@@ -25,6 +24,8 @@ namespace AssistantProcessor.Models
         [JsonIgnore] public List<IRowChangedObserver> IRowChangedObservers;
         [JsonIgnore] public List<ITestChangedObserver> ITestChangedObservers;
 
+        [JsonIgnore] public TestAnalized tempTest; 
+
         #nullable enable
         public CoreFile(string? fileSource, string? content, FilterPatterns filterPatterns, ParseType parseType)
         {
@@ -41,8 +42,10 @@ namespace AssistantProcessor.Models
         }
         #nullable disable
 
+        #region Saving
         public string Encode()
         {
+            filterPatterns.Encode();
             return JsonConvert.SerializeObject(this);
         }
 
@@ -53,9 +56,12 @@ namespace AssistantProcessor.Models
             coreFile.IRowChangedObservers = new List<IRowChangedObserver>();
             coreFile.actionsActionBlocksNext = new Stack<ActionBlock>();
             coreFile.actionsActionBlocksPrev = new Stack<ActionBlock>();
+            coreFile.filterPatterns.Decode();
             return coreFile;
         }
+        #endregion
 
+        #region UndoRedo
         private void FixAction(EditorAction editorAction, ObjectMemento objectMemento)
         {
         }
@@ -84,10 +90,12 @@ namespace AssistantProcessor.Models
             }
             return false;
         }
+        #endregion
 
-        public void OnRowAdded(string rowId)
+        public void OnRowAdded(RowAnalized rowAnalized)
         {
-            
+            Rows.Add(rowAnalized);
+            rowsIdsOrdered.Add(rowAnalized.rowId);
         }
 
         public void OnRowConcatenated(string rowId)
@@ -197,35 +205,41 @@ namespace AssistantProcessor.Models
                         case RowType.WRONG_ANSWER:
                             test.task.Add(rowId);
                             break;
-                        default:
-                            break;
                     }
                     actionBlock = new ActionBlock();
                     actionBlock.AddAction(EditorAction.ROW_TYPE_CHAHGED, o2);
                     actionBlock.AddAction(EditorAction.ROW_TYPE_CHAHGED, o3);
                     FinishAction();
                 }
-
             }
         }
 
-        public void OnTestAdded(TestAnalized analyseBlock)
+        public void OnTestAdded(TestAnalized test)
         {
-           
+            AnalyseBlocks.Add(test);
+            testIdsOrdered.Add(test.taskId);
         }
 
-        public void OnTestDeleted(TestAnalized analyseBlock)
+        public void OnTestDeleted(string testId)
         {
             FixAction(EditorAction.TEST_DELETED, null);
             
         }
 
-        public void OnTestFormed(TestAnalized analyseBlock)
+        public void OnTestFormed(string testId)
         {
-            FixAction(EditorAction.TEST_FORMED, null);
-            
+            TestAnalized testAnalized = AnalyseBlocks.Find(x => x.taskId == testId);
+            if (testAnalized != null)
+            {
+                actionBlock = new ActionBlock();
+                ObjectMemento o1 = testAnalized.SaveState();
+                testAnalized.formed = true;
+                actionBlock.AddAction(EditorAction.TEST_FORMED, o1);
+                FinishAction();
+            }
         }
 
+        #region Memento
         public ObjectMemento SaveState()
         {
             return new IdsRowMemento(rowsIdsOrdered, testIdsOrdered);
@@ -236,5 +250,6 @@ namespace AssistantProcessor.Models
             rowsIdsOrdered = ((IdsRowMemento) objectMemento).IdsRList;
             testIdsOrdered = ((IdsRowMemento) objectMemento).IdsTList;
         }
+        #endregion
     }
 }
