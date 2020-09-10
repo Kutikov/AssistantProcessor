@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AssistantProcessor.Enums;
 using AssistantProcessor.Interfaces;
@@ -27,18 +28,48 @@ namespace AssistantProcessor.Models
         [JsonIgnore] public TestAnalized tempTest; 
 
         #nullable enable
-        public CoreFile(string? fileSource, string? content, FilterPatterns filterPatterns, ParseType parseType)
+        public CoreFile(string? fileSource, string? content)
         {
             this.content = content;
             this.fileSource = fileSource;
-            this.filterPatterns = filterPatterns;
-            ParseType = parseType;
             rowsIdsOrdered = new List<string>();
             testIdsOrdered = new List<string>();
             ITestChangedObservers = new List<ITestChangedObserver>();
             IRowChangedObservers = new List<IRowChangedObserver>();
             actionsActionBlocksNext = new Stack<ActionBlock>();
             actionsActionBlocksPrev = new Stack<ActionBlock>();
+        }
+
+        private void DecodeFile(string fileSource)
+        {
+            DestructText("");
+        }
+
+        private void DestructText(string text)
+        {
+            rowNatives = new List<RowNative>();
+            string[] enteries = text.Split(new[] {"\n"}, StringSplitOptions.None);
+            for (int i = 0; i < enteries.Length; i++)
+            {
+                rowNatives.Add(new RowNative(enteries[i], i));
+            }
+        }
+
+        public void AI_Analize(FilterPatterns filterPatterns, ParseType ParseType)
+        {
+            this.filterPatterns = filterPatterns;
+            this.ParseType = ParseType;
+            foreach (var rowNative in rowNatives)
+            {
+                if (rowNative.included)
+                {
+                    RowAnalized rowAnalized = new RowAnalized(rowNative, filterPatterns, this);
+                    foreach (var iRowChangedObserver in IRowChangedObservers)
+                    {
+                        iRowChangedObserver.OnRowAdded(rowAnalized);
+                    }
+                }
+            }
         }
         #nullable disable
 
@@ -88,6 +119,7 @@ namespace AssistantProcessor.Models
         }
         #endregion
 
+        #region Implementation
         public void OnNextTestDetected()
         {
             if (tempTest != null)
@@ -308,6 +340,7 @@ namespace AssistantProcessor.Models
                 FinishAction();
             }
         }
+        #endregion
 
         #region Memento
         public ObjectMemento SaveState()

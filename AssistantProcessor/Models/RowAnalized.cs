@@ -8,7 +8,6 @@ namespace AssistantProcessor.Models
     public class RowAnalized : IUndoRedoObject
     {
         public RowType rowType;
-        public int rowNumber;
         public string rowId; //static
         public List<int> nativeNumbers;
         public bool includedToAnalysis;
@@ -189,14 +188,13 @@ namespace AssistantProcessor.Models
 
         public ObjectMemento SaveState()
         {
-            return new RowMemento(rowType, rowNumber, nativeNumbers, includedToAnalysis, hiddenContent, visibleEditedContent, testId);
+            return new RowMemento(rowType, nativeNumbers, includedToAnalysis, hiddenContent, visibleEditedContent, testId);
         }
 
         public void RestoreState(ObjectMemento objectMemento)
         {
             RowMemento rowMemento = (RowMemento) objectMemento;
             rowType = rowMemento.RowType;
-            rowNumber = rowMemento.RowNumber;
             nativeNumbers = rowMemento.NativeNumbers;
             includedToAnalysis = rowMemento.IncludedToAnalysis;
             hiddenContent = rowMemento.HiddenContent;
