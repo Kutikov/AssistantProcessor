@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using AssistantProcessor.Enums;
 using AssistantProcessor.Interfaces;
 
@@ -18,16 +19,171 @@ namespace AssistantProcessor.Models
 
         public RowAnalized(RowNative rowNative, FilterPatterns filterPatterns, CoreFile coreFile)
         {
+            bool analized = false;
             content = rowNative.content;
-            rowNumber = rowNative.rowNumber;
+            nativeNumbers = new List<int>{ rowNative.rowNumber };
             rowId = "row" + rowNative.rowNumber;
-            if (coreFile.tempTest.correctAnswers.Count == 0 && coreFile.tempTest.wrongAnswers.Count == 0)
+            includedToAnalysis = true;
+            if (content.Trim() == "")
             {
-
+                includedToAnalysis = false;
+                if (filterPatterns.tasksDividedByNewRow)
+                {
+                    coreFile.OnNextTestDetected();
+                }
             }
             else
             {
-                if()
+                int i = 0;
+                while (!analized && i < filterPatterns.correctAnswerRegexes.Count)
+                {
+                    if (filterPatterns.correctAnswerRegexes[i].IsMatch(content))
+                    {
+                        analized = true;
+                        MatchCollection match = filterPatterns.correctAnswerRegexes[i].Matches(content);
+                        hiddenContent = match[0].Value;
+                        visibleEditedContent = content.Replace(hiddenContent, "").Trim();
+                        testId = coreFile.tempTest.testId;
+                        rowType = RowType.CORRECT_ANSWER;
+                    }
+                    i++;
+                }
+                i = 0;
+                while (!analized && i < filterPatterns.wrongAnswerRegexes.Count)
+                {
+                    if (filterPatterns.wrongAnswerRegexes[i].IsMatch(content))
+                    {
+                        analized = true;
+                        MatchCollection match = filterPatterns.wrongAnswerRegexes[i].Matches(content);
+                        hiddenContent = match[0].Value;
+                        visibleEditedContent = content.Replace(hiddenContent, "").Trim();
+                        testId = coreFile.tempTest.testId;
+                        rowType = RowType.WRONG_ANSWER;
+                    }
+                    i++;
+                }
+                if (coreFile.tempTest.correctAnswers.Count == 0)
+                {
+                    visibleEditedContent = content.Trim();
+                    hiddenContent = "";
+                    testId = coreFile.tempTest.testId;
+                    rowType = RowType.TASK;
+                }
+                else
+                {
+                    if (!analized && !filterPatterns.tasksDividedByNewRow && coreFile.tempTest.wrongAnswers.Count > 0)
+                    {
+                        i = 0;
+                        while (!analized && i < filterPatterns.taskRegexes.Count)
+                        {
+                            if (filterPatterns.taskRegexes[i].IsMatch(content))
+                            {
+                                coreFile.OnNextTestDetected();
+                                analized = true;
+                                MatchCollection match = filterPatterns.taskRegexes[i].Matches(content);
+                                hiddenContent = match[0].Value;
+                                visibleEditedContent = content.Replace(hiddenContent, "").Trim();
+                                testId = coreFile.tempTest.testId;
+                                rowType = RowType.TASK;
+                            }
+                            i++;
+                        }
+                    }
+                    if (!analized || coreFile.tempTest.wrongAnswers.Count == 0)
+                    {
+                        hiddenContent = "";
+                        visibleEditedContent = content.Trim();
+                        rowType = RowType.WRONG_ANSWER;
+                        testId = coreFile.tempTest.testId;
+                    }
+                }
+            }
+        }
+
+        public RowAnalized(RowAnalized rowAnalized, int position, CoreFile coreFile)
+        {
+            List<string> alphabet = new List<string> {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" };
+            rowId = rowAnalized.rowId;
+            if (new Regex(@"$\d").IsMatch(rowId))
+            {
+                rowId += "a";
+            }
+            else
+            {
+                string b = rowId.Substring(rowId.Length - 2);
+                rowId = rowId.Replace(b, alphabet[alphabet.FindIndex(x => x == b) + 1]);
+            }
+            int index = coreFile.rowsIdsOrdered.FindIndex(x => x == rowAnalized.rowId);
+            if (index < coreFile.rowsIdsOrdered.Count - 1)
+            {
+                coreFile.rowsIdsOrdered.Insert(index + 1, rowId);
+            }
+            else
+            {
+                coreFile.rowsIdsOrdered.Add(rowId);
+            }
+            content = rowAnalized.visibleEditedContent.Substring(position);
+            includedToAnalysis = true;
+            nativeNumbers = new List<int>();
+            testId = rowAnalized.testId;
+            bool analized = false;
+            switch (rowAnalized.rowType)
+            {
+                case RowType.COMMENT:
+                    hiddenContent = "";
+                    visibleEditedContent = content.Trim();
+                    testId = coreFile.tempTest.testId;
+                    rowType = RowType.COMMENT;
+                    break;
+                case RowType.CORRECT_ANSWER:
+                case RowType.WRONG_ANSWER:
+                case RowType.TASK:
+                    int i = 0;
+                    while (!analized && i < coreFile.filterPatterns.correctAnswerRegexes.Count)
+                    {
+                        if (coreFile.filterPatterns.correctAnswerRegexes[i].IsMatch(content))
+                        {
+                            analized = true;
+                            MatchCollection match = coreFile.filterPatterns.correctAnswerRegexes[i].Matches(content);
+                            hiddenContent = match[0].Value;
+                            visibleEditedContent = content.Replace(hiddenContent, "").Trim();
+                            testId = coreFile.tempTest.testId;
+                            rowType = RowType.CORRECT_ANSWER;
+                        }
+                        i++;
+                    }
+                    i = 0;
+                    while (!analized && i < coreFile.filterPatterns.wrongAnswerRegexes.Count)
+                    {
+                        if (coreFile.filterPatterns.wrongAnswerRegexes[i].IsMatch(content))
+                        {
+                            analized = true;
+                            MatchCollection match = coreFile.filterPatterns.wrongAnswerRegexes[i].Matches(content);
+                            hiddenContent = match[0].Value;
+                            visibleEditedContent = content.Replace(hiddenContent, "").Trim();
+                            testId = coreFile.tempTest.testId;
+                            rowType = RowType.WRONG_ANSWER;
+                        }
+                        i++;
+                    }
+                    if (!analized)
+                    {
+                        if (rowAnalized.rowType == RowType.TASK)
+                        {
+                            hiddenContent = "";
+                            visibleEditedContent = content.Trim();
+                            testId = coreFile.tempTest.testId;
+                            rowType = RowType.TASK;
+                        }
+                        else
+                        {
+                            hiddenContent = "";
+                            visibleEditedContent = content.Trim();
+                            testId = coreFile.tempTest.testId;
+                            rowType = RowType.WRONG_ANSWER;
+                        }
+                    }
+                    break;
             }
         }
 
