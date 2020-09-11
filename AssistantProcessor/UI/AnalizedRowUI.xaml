@@ -1,0 +1,49 @@
+﻿<UserControl x:Class="AssistantProcessor.UI.AnalizedRowUI"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:AssistantProcessor.UI"
+             mc:Ignorable="d" 
+             d:DesignWidth="400">
+    <Grid Background="#222" Height="Auto">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="30"/>
+            <ColumnDefinition Width="30"/>
+            <ColumnDefinition Width="30"/>
+            <ColumnDefinition Width="30"/>
+            <ColumnDefinition Width="30"/>
+            <ColumnDefinition Width="50"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <CheckBox Margin="8" VerticalAlignment="Top" x:Name="CheckBox"/>
+        <TextBlock x:Name="RowNumberText" Foreground="#ccc" FontSize="16" HorizontalAlignment="Right" Grid.Column="1" Margin="8,4" VerticalAlignment="Top">1</TextBlock>
+        <Grid Background="#263238" Grid.Column="2">
+            <RadioButton x:Name="TaskRadio" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="2,8"></RadioButton>
+        </Grid>
+        <Grid Background="#003300" Grid.Column="3">
+            <RadioButton IsChecked="True" x:Name="CorrectRadio" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="2,8"></RadioButton>
+        </Grid>
+        <Grid Background="#5f2222" Grid.Column="4">
+            <RadioButton x:Name="WrongRadio" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="2,8"></RadioButton>
+        </Grid>
+        <Grid Background="#543e00" Grid.Column="5">
+            <RadioButton x:Name="CommentRadio" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="2,8"></RadioButton>
+        </Grid>
+        <TextBlock x:Name="HiddenText" VerticalAlignment="Top" HorizontalAlignment="Right" Foreground="#aaa" Grid.Column="6" FontStyle="Italic" FontSize="16" Margin="0,4,4,4">12.3</TextBlock>
+        <TextBox Height="Auto" VerticalAlignment="Top" x:Name="VisibleEditingTextBox" Grid.Column="7" FontSize="16" MaxLines="100" TextWrapping="Wrap" Margin="4,1">sarbgshgtrv5ncuvnbcyrvxvy45bcui6vnubyvtc</TextBox>
+        <Viewbox x:Name="RemoveButton" Grid.Column="8" Height="24" Width="24">
+            <Canvas Width="24" Height="24" >
+                <Path Fill="White" Data="M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19M8.46,11.88L9.87,10.47L12,12.59L14.12,10.47L15.53,11.88L13.41,14L15.53,16.12L14.12,17.53L12,15.41L9.88,17.53L8.47,16.12L10.59,14L8.46,11.88M15.5,4L14.5,3H9.5L8.5,4H5V6H19V4H15.5Z" />
+            </Canvas>
+        </Viewbox>
+        <Viewbox x:Name="ToNextButton" Margin="4,2" Grid.Column="9" Height="24" Width="24">
+            <Canvas Width="24" Height="24" >
+                <Path Fill="White" Data="M12,17L7,12H10V8H14V12H17L12,17M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4Z" />
+            </Canvas>
+        </Viewbox>
+    </Grid>
+</UserControl>

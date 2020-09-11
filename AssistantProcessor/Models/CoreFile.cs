@@ -320,6 +320,49 @@ namespace AssistantProcessor.Models
             testIdsOrdered.Add(test.testId);
         }
 
+        public void OnTestAdded(List<string> rowIds)
+        {
+            RowAnalized rw = Rows.Find(x => x.rowId == rowIds[0]);
+            TestAnalized parentTestAnalized = AnalyseBlocks.Find(x => x.testId == rw.testId);
+            if (rw != null && parentTestAnalized != null)
+            {
+                ObjectMemento o1 = SaveState();
+                ObjectMemento o2 = parentTestAnalized.SaveState();
+                int index = testIdsOrdered.FindIndex(x => x == rw.testId) + 1;
+                tempTest = new TestAnalized(testIdsOrdered.Count, "test" + testIdsOrdered.Count);
+                TestAnalized t = tempTest.Clone();
+                foreach (var iTestChangedObserver in ITestChangedObservers)
+                {
+                    if (iTestChangedObserver.GetType() == GetType())
+                    {
+                        AnalyseBlocks.Add(t);
+                        testIdsOrdered.Insert(index, t.testId);
+                    }
+                    else
+                    {
+                        iTestChangedObserver.OnTestAdded(t);
+                    }
+                }
+                List<ObjectMemento> objectMementoes = new List<ObjectMemento> { o1, o2 };
+                foreach (var rowId in rowIds)
+                {
+                    RowAnalized rw0 = Rows.Find(x => x.rowId == rowId);
+                    if (rw0 != null)
+                    {
+                        objectMementoes.Add(rw0.SaveState());
+                        parentTestAnalized.DisconnectRow(rw0.rowId);
+                        t.ConnectToRow(rw0);
+                    }
+                }
+                actionBlock = new ActionBlock();
+                foreach (var objectMemento in objectMementoes)
+                {
+                    actionBlock.AddAction(EditorAction.TEST_ADDED, objectMemento);
+                }
+                FinishAction();
+            }
+        }
+
         public void OnTestDeleted(TestAnalized test)
         {
             ObjectMemento o1 = test.SaveState();

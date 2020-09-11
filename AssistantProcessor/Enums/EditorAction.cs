@@ -2,6 +2,7 @@
 {
     public enum EditorAction
     {
+        TEST_ADDED,
         TEST_DELETED,
         TEST_FORMED,
         ROW_CONCATENATED,
