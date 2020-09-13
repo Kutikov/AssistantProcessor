@@ -12,6 +12,7 @@ namespace AssistantProcessor.UI
         private readonly RowAnalized rowAnalized;
         private readonly CoreFile coreFile;
         private readonly bool inited;
+        public string rowId;
         public AnalizedRowUI(RowAnalized rowAnalized, CoreFile coreFile)
         {
             InitializeComponent();
@@ -35,6 +36,7 @@ namespace AssistantProcessor.UI
             }
             HiddenText.Text = rowAnalized.hiddenContent;
             inited = true;
+            rowId = rowAnalized.rowId;
             coreFile.IRowChangedObservers.Add(this);
         }
 

@@ -86,6 +86,20 @@
                 <StackPanel Orientation="Vertical" x:Name="RowsHolder">
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Grid.Row="1" Width="Auto" HorizontalAlignment="Center">
+                    <Button x:Name="CreateNewTest" Click="CreateNewTest_OnClick"  Margin="4">
+                        <Grid Margin="4,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Viewbox Grid.Column="0" Height="20" Width="20">
+                                <Canvas Width="24" Height="24" >
+                                    <Path Fill="White" Data="M13,9H18.5L13,3.5V9M6,2H14L20,8V20A2,2 0 0,1 18,22H6C4.89,22 4,21.1 4,20V4C4,2.89 4.89,2 6,2M11,15V12H9V15H6V17H9V20H11V17H14V15H11Z" />
+                                </Canvas>
+                            </Viewbox>
+                            <TextBlock FontWeight="Bold" Foreground="White" FontSize="14" Grid.Column="1" Margin="8,0,4,0" VerticalAlignment="Center">ВЫДЕЛИТЬ ТЕСТ</TextBlock>
+                        </Grid>
+                    </Button>
                     <Button x:Name="NextAnalizedRow" Click="NextAnalizedRow_OnClick" Margin="4">
                         <Grid Margin="4,2">
                             <Grid.ColumnDefinitions>
@@ -125,7 +139,7 @@
             </Grid.ColumnDefinitions>
             <TextBlock Margin="4" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10" Foreground="#ddd">Пердупреждения<LineBreak/>Щелкните на иконку</TextBlock>
             <StackPanel Orientation="Horizontal" Grid.Column="1">
-                <Viewbox x:Name="EncodingError" Width="24" Height="24" Margin="4">
+                <Viewbox x:Name="EncodingError" MouseUp="ErrorWarning_OnMouseUp" Width="24" Height="24" Margin="4">
                     <Canvas Width="24" Height="24">
                         <Path Fill="#ff5252" Data="M12.87,15.07L10.33,12.56L10.36,12.53C12.1,10.59 13.34,8.36 14.07,6H17V4H10V2H8V4H1V6H12.17C11.5,7.92 10.44,9.75 9,11.35C8.07,10.32 7.3,9.19 6.69,8H4.69C5.42,9.63 6.42,11.17 7.67,12.56L2.58,17.58L4,19L9,14L12.11,17.11L12.87,15.07M18.5,10H16.5L12,22H14L15.12,19H19.87L21,22H23L18.5,10M15.88,17L17.5,12.67L19.12,17H15.88Z" />
                     </Canvas>
@@ -151,7 +165,7 @@
                     </Canvas>
                 </Viewbox>
             </StackPanel>
-            <Button Background="#004d40" Grid.Column="2" x:Name="FormTest" Click="AddComment_OnClick" Height="Auto" VerticalAlignment="Center" Margin="4">
+            <Button Background="#004d40" Grid.Column="2" x:Name="FormTest" Click="FormTest_OnClick"  Height="Auto" VerticalAlignment="Center" Margin="4">
                 <Grid Margin="4,2">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -165,6 +179,20 @@
                     <TextBlock FontWeight="Bold" Foreground="White" FontSize="14" Grid.Column="1" Margin="8,0,4,0" VerticalAlignment="Center">ГОТОВО</TextBlock>
                 </Grid>
             </Button>
+        </Grid>
+        <Grid Grid.Row="0" x:Name="Dialog" Visibility="Visible" RowSpan="3" Background="#33000000">
+            <Border Background="#303030" VerticalAlignment="Center" HorizontalAlignment="Center" CornerRadius="8" BorderBrush="#303030" BorderThickness="0">
+                <StackPanel Width="320">
+                    <TextBlock x:Name="ErrorCaption" Foreground="#ff5252" FontSize="18" Margin="8" VerticalAlignment="Top" HorizontalAlignment="Left"><Bold>ОШИБКА!</Bold></TextBlock>
+                    <TextBlock x:Name="WarningCaption" Foreground="#ffd740" FontSize="18" Margin="8" VerticalAlignment="Top" HorizontalAlignment="Left">ПРЕДУПРЕЖДЕНИЕ</TextBlock>
+                    <TextBlock x:Name="EncodingErrorText" Foreground="#fff" FontSize="12" Margin="8,0,8,8" VerticalAlignment="Top" TextWrapping="Wrap" HorizontalAlignment="Stretch">Невозможно перекодировать некоторые символы (греческие буквы, диакритики и т.д.). Попробуйте заменить их или используйте ПРЕМИУМ вариант</TextBlock>
+                    <TextBlock x:Name="NoTaskText" Foreground="#fff" FontSize="12" Margin="8,0,8,8" VerticalAlignment="Top" TextWrapping="Wrap" HorizontalAlignment="Stretch">Тест не содержит текста вопроса! Проверьте все еще раз</TextBlock>
+                    <TextBlock x:Name="NoCorrectAnswersText" Foreground="#fff" FontSize="12" Margin="8,0,8,8" VerticalAlignment="Top" TextWrapping="Wrap" HorizontalAlignment="Stretch">Тест не содержит правильных ответов! Проверьте все еще раз</TextBlock>
+                    <TextBlock x:Name="NoCommentsText" Foreground="#fff" FontSize="12" Margin="8,0,8,8" VerticalAlignment="Top" TextWrapping="Wrap" HorizontalAlignment="Stretch">Тест не содержит пояснений, они не обязательны, но были бы удобны</TextBlock>
+                    <TextBlock x:Name="MultipleAnswersText" Foreground="#fff" FontSize="12" Margin="8,0,8,8" VerticalAlignment="Top" TextWrapping="Wrap" HorizontalAlignment="Stretch">Тест содержит несколько верных ответов? Если нет, то уберите разделение строки. Весь текст ответа должен быть в одну строку!</TextBlock>
+                    <TextBlock x:Name="CloseButton" Foreground="#fff" MouseUp="CloseButton_OnMouseUp" FontSize="18" Margin="8,0,16,8" VerticalAlignment="Top" TextWrapping="Wrap" HorizontalAlignment="Right">ЗАКРЫТЬ</TextBlock>
+                </StackPanel>
+            </Border>
         </Grid>
     </Grid>
 </UserControl>
