@@ -6,7 +6,7 @@ namespace AssistantProcessor.Interfaces
     public interface IRowChangedObserver
     {
         public void OnRowAdded(RowAnalized rowAnalized);
-        public void OnRowConcatenated(string rowId);
+        public void OnRowConcatenated(string? rowIdTop, string? rowIdBottom);
         public void OnRowDiversed(string rowId, int position);
         public void OnRowDeleted(string rowId);
         public void OnRowMovedNext(string rowId);

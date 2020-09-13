@@ -122,13 +122,10 @@ namespace AssistantProcessor.Models
         #region Implementation
         public void OnNextTestDetected()
         {
-            if (tempTest != null)
+            foreach (var iTestChangedObserver in ITestChangedObservers)
             {
-                foreach (var iTestChangedObserver in ITestChangedObservers)
-                {
-                    TestAnalized t = tempTest.Clone();
-                    iTestChangedObserver.OnTestAdded(t);
-                }
+                TestAnalized t = tempTest.Clone();
+                iTestChangedObserver.OnTestAdded(t);
             }
             tempTest = new TestAnalized(testIdsOrdered.Count, "test" + testIdsOrdered.Count);
         }
@@ -139,10 +136,22 @@ namespace AssistantProcessor.Models
             rowsIdsOrdered.Add(rowAnalized.rowId);
         }
 
-        public void OnRowConcatenated(string rowId)
+#pragma warning disable 8632
+        public void OnRowConcatenated(string? rowIdIdTop, string? rowIdBottom)
+#pragma warning restore 8632
         {
-            RowAnalized rowAnalized = Rows.Find(x => x.rowId == rowId);
-            int nextRow = rowsIdsOrdered.IndexOf(rowId) + 1;
+            RowAnalized rowAnalized;
+            int nextRow;
+            if (rowIdIdTop != null)
+            {
+                rowAnalized = Rows.Find(x => x.rowId == rowIdIdTop);
+                nextRow = rowsIdsOrdered.IndexOf(rowIdIdTop) + 1;
+            }
+            else
+            {
+                rowAnalized = Rows.Find(x => x.rowId == rowIdBottom);
+                nextRow = rowsIdsOrdered.IndexOf(rowIdBottom) - 1;
+            }
             if (nextRow < rowsIdsOrdered.Count)
             {
                 RowAnalized rowNext = Rows.Find(x => x.rowId == rowsIdsOrdered[nextRow]);
