@@ -2,14 +2,12 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using AssistantProcessor.Enums;
+using AssistantProcessor.Interfaces;
 using AssistantProcessor.Models;
 
 namespace AssistantProcessor.UI
 {
-    /// <summary>
-    /// Логика взаимодействия для AnalizedRowUI.xaml
-    /// </summary>
-    public partial class AnalizedRowUI : UserControl
+    public partial class AnalizedRowUI : UserControl, IRowChangedObserver
     {
         private readonly RowAnalized rowAnalized;
         private readonly CoreFile coreFile;
@@ -37,6 +35,12 @@ namespace AssistantProcessor.UI
             }
             HiddenText.Text = rowAnalized.hiddenContent;
             inited = true;
+            coreFile.IRowChangedObservers.Add(this);
+        }
+
+        ~AnalizedRowUI()
+        {
+            coreFile.IRowChangedObservers.Remove(this);
         }
 
         private void Radio_OnChecked(object sender, RoutedEventArgs e)
@@ -124,6 +128,50 @@ namespace AssistantProcessor.UI
                     }
                     break;
             }
+        }
+
+        public void OnRowAdded(RowAnalized rowAnalized)
+        {
+            //test ui
+        }
+
+        public void OnRowConcatenated(string? rowIdTop, string? rowIdBottom)
+        {
+            if (rowIdTop != null)
+            {
+                if (rowIdTop == rowAnalized.rowId)
+                {
+                    VisibleEditingTextBox.Text = rowAnalized.visibleEditedContent;
+                }
+            }
+        }
+
+        public void OnRowDiversed(string rowId, int position)
+        {
+            if (rowId == rowAnalized.rowId)
+            {
+                VisibleEditingTextBox.Text = rowAnalized.visibleEditedContent;
+            }
+        }
+
+        public void OnRowDeleted(string rowId)
+        {
+            //test ui
+        }
+
+        public void OnRowMovedNext(string rowId)
+        {
+            //test ui
+        }
+
+        public void OnRowMovedPrev(string testId)
+        {
+            //test ui
+        }
+
+        public void OnRowTypeChanged(string rowId, RowType rowType)
+        {
+            
         }
     }
 }

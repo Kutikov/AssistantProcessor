@@ -168,6 +168,13 @@ namespace AssistantProcessor.Models
                             rowAnalized.visibleEditedContent = rowAnalized.visibleEditedContent + rowNext.hiddenContent +
                                                                rowNext.visibleEditedContent;
                             rowNext.includedToAnalysis = false;
+                            foreach (var iRowChangedObserver in IRowChangedObservers)
+                            {
+                                if (iRowChangedObserver.GetType() != GetType())
+                                {
+                                    iRowChangedObserver.OnRowDeleted(rowNext.rowId);
+                                }
+                            }
                             actionBlock = new ActionBlock();
                             if (testAnalized != testAnalized2)
                             {
