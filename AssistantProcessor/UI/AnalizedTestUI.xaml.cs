@@ -13,21 +13,29 @@ namespace AssistantProcessor.UI
     public partial class AnalizedTestUI : UserControl, IRowChangedObserver, ITestChangedObserver
     {
         private readonly CoreFile coreFile;
-        private readonly TestAnalized testAnalized;
+        private TestAnalized? testAnalized;
         private readonly List<AnalizedRowUI> analizedRowUis;
-        public AnalizedTestUI(CoreFile coreFile, TestAnalized testAnalized)
+
+        public AnalizedTestUI(CoreFile coreFile)
         {
             InitializeComponent();
             this.coreFile = coreFile;
-            this.testAnalized = testAnalized;
             analizedRowUis = new List<AnalizedRowUI>();
             coreFile.IRowChangedObservers.Add(this);
             coreFile.ITestChangedObservers.Add(this);
         }
+
         ~AnalizedTestUI()
         {
             coreFile.ITestChangedObservers.Remove(this);
             coreFile.IRowChangedObservers.Remove(this);
+        }
+
+        public void ReInit(TestAnalized testAnalized)
+        {
+            this.testAnalized = testAnalized;
+            RowUIsRedraw();
+            CheckTestValidaty();
         }
 
         private void NextAnalizedRow_OnClick(object sender, RoutedEventArgs e)
@@ -82,59 +90,144 @@ namespace AssistantProcessor.UI
             Dialog.Visibility = Visibility.Collapsed;
         }
 
+        private void RowUIsRedraw()
+        {
+            foreach (var rowUi in analizedRowUis.ToArray())
+            {
+                RowsHolder.Children.Remove(rowUi);
+                analizedRowUis.Remove(rowUi);
+            }
+
+            List<string> ids = testAnalized.OrderedConnectedIds(coreFile.rowsIdsOrdered);
+            for (int i = 0; i < ids.Count; i++)
+            {
+                AnalizedRowUI analizedRowUi = new AnalizedRowUI(coreFile.Rows.First(x => x.rowId == ids[i]), coreFile, i, this);
+                analizedRowUis.Add(analizedRowUi);
+                RowsHolder.Children.Add(analizedRowUi);
+            }
+        }
+
+        private void CheckTestValidaty()
+        {
+            bool enableFormButton = true;
+            switch (testAnalized.correctAnswers.Count)
+            {
+                case 0:
+                    enableFormButton = false;
+                    NoTrueAnswers.Visibility = Visibility.Visible;
+                    MultipleCorrectAnswers.Visibility = Visibility.Collapsed;
+                    break;
+                case 1:
+                    NoTrueAnswers.Visibility = Visibility.Collapsed;
+                    MultipleCorrectAnswers.Visibility = Visibility.Collapsed;
+                    break;
+                default:
+                    NoTrueAnswers.Visibility = Visibility.Collapsed;
+                    MultipleCorrectAnswers.Visibility = Visibility.Visible;
+                    break;
+            }
+
+            if (!CheckWin1251())
+            {
+                enableFormButton = false;
+            }
+            if (testAnalized.task.Count == 0)
+            {
+                enableFormButton = false;
+                NoTask.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                NoTask.Visibility = Visibility.Collapsed;
+            }
+            NoComments.Visibility = testAnalized.comments.Count == 0 ? Visibility.Visible : Visibility.Hidden;
+            FormTest.IsEnabled = enableFormButton;
+        }
+
+        public bool CheckWin1251()
+        {
+            bool enableFormButton = true;
+            EncodingError.Visibility = Visibility.Collapsed;
+            if (coreFile.ParseType == ParseType.LINEAR)
+            {
+                foreach (var analizedRowUi in analizedRowUis)
+                {
+                    if (!analizedRowUi.CheckWin1251())
+                    {
+                        enableFormButton = false;
+                        EncodingError.Visibility = Visibility.Visible;
+                    }
+                }
+            }
+            FormTest.IsEnabled = enableFormButton;
+            return enableFormButton;
+        }
+
         public void OnRowAdded(RowAnalized rowAnalized)
         {
-            throw new NotImplementedException();
+            RowUIsRedraw();
+            CheckTestValidaty();
         }
 
         public void OnRowConcatenated(string? rowIdTop, string? rowIdBottom)
         {
-            throw new NotImplementedException();
+            RowUIsRedraw();
+            CheckTestValidaty();
         }
 
         public void OnRowDiversed(string rowId, int position)
         {
-            throw new NotImplementedException();
+            RowUIsRedraw();
+            CheckTestValidaty();
         }
 
         public void OnRowDeleted(string rowId)
         {
-            throw new NotImplementedException();
+            RowUIsRedraw();
+            CheckTestValidaty();
         }
 
         public void OnRowMovedNext(string rowId)
         {
-            throw new NotImplementedException();
+            RowUIsRedraw();
+            CheckTestValidaty();
         }
 
         public void OnRowMovedPrev(string testId)
         {
-            throw new NotImplementedException();
+            RowUIsRedraw();
+            CheckTestValidaty();
         }
 
         public void OnRowTypeChanged(string rowId, RowType rowType)
         {
-            throw new NotImplementedException();
+            CheckTestValidaty();
         }
 
         public void OnTestAdded(TestAnalized test)
         {
-            throw new NotImplementedException();
+            RowUIsRedraw();
+            CheckTestValidaty();
         }
 
         public void OnTestAdded(List<string> rowIds)
         {
-            throw new NotImplementedException();
+            RowUIsRedraw();
+            CheckTestValidaty();
         }
 
         public void OnTestDeleted(TestAnalized test)
         {
-            throw new NotImplementedException();
+            
         }
 
         public void OnTestFormed(string testId)
         {
-            throw new NotImplementedException();
+            TestAnalized? testAnalizedL = coreFile.GetNextNonFormedTestAnalized(testId);
+            if (testAnalizedL != null)
+            {
+                ReInit(testAnalizedL);
+            }
         }
 
         private void FormTest_OnClick(object sender, RoutedEventArgs e)

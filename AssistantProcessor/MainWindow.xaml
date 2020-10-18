@@ -7,6 +7,20 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-
+        <Grid.RowDefinitions>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="3"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3"></StackPanel>
+        <Grid x:Name="EditorHolder" Grid.Column="0" Grid.Row="1"></Grid>
+        <GridSplitter Grid.Row="1" Grid.Column="1" VerticalAlignment="Stretch" HorizontalAlignment="Center" Width="3" Background="#111"></GridSplitter>
+        <ScrollViewer Grid.Column="2" Grid.Row="1" VerticalScrollBarVisibility="Visible">
+            <StackPanel Orientation="Vertical" x:Name="NativePanel"></StackPanel>
+        </ScrollViewer>
     </Grid>
 </Window>

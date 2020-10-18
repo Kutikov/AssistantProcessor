@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Xsl;
 using AssistantProcessor.Enums;
 using AssistantProcessor.Interfaces;
+using AssistantProcessor.UI;
 using Newtonsoft.Json;
 
 namespace AssistantProcessor.Models
@@ -22,20 +24,22 @@ namespace AssistantProcessor.Models
 
         [JsonIgnore] public Stack<ActionBlock> actionsActionBlocksPrev;
         [JsonIgnore] public Stack<ActionBlock> actionsActionBlocksNext;
-        [JsonIgnore] public List<IRowChangedObserver> IRowChangedObservers;
+        [JsonIgnore] public IRowChangedIterator IRowChangedObservers;
         [JsonIgnore] public List<ITestChangedObserver> ITestChangedObservers;
 
-        [JsonIgnore] public TestAnalized tempTest; 
+        [JsonIgnore] public TestAnalized tempTest;
+        [JsonIgnore] public MainWindow mainWindow;
 
         #nullable enable
-        public CoreFile(string? fileSource, string? content)
+        public CoreFile(string? fileSource, string? content, MainWindow mainWindow)
         {
             this.content = content;
             this.fileSource = fileSource;
+            this.mainWindow = mainWindow;
             rowsIdsOrdered = new List<string>();
             testIdsOrdered = new List<string>();
             ITestChangedObservers = new List<ITestChangedObserver>();
-            IRowChangedObservers = new List<IRowChangedObserver>();
+            IRowChangedObservers = new IRowChangedIterator();
             actionsActionBlocksNext = new Stack<ActionBlock>();
             actionsActionBlocksPrev = new Stack<ActionBlock>();
         }
@@ -52,6 +56,12 @@ namespace AssistantProcessor.Models
             for (int i = 0; i < enteries.Length; i++)
             {
                 rowNatives.Add(new RowNative(enteries[i], i));
+            }
+            //try
+            foreach(var n in rowNatives)
+            {
+                NativeRowUI nativeRowUi = new NativeRowUI(n, this);
+                mainWindow.NativePanel.Children.Add(nativeRowUi);
             }
         }
 
@@ -70,6 +80,30 @@ namespace AssistantProcessor.Models
                     }
                 }
             }
+            AnalizedTestUI analizedTestUi = new AnalizedTestUI(this);
+            mainWindow.EditorHolder.Children.Add(analizedTestUi);
+            analizedTestUi.ReInit(AnalyseBlocks.Find(X => X.testId == testIdsOrdered[0]));
+        }
+
+        public TestAnalized? GetNextNonFormedTestAnalized(string testId)
+        {
+            try
+            {
+                int index = testIdsOrdered.FindIndex(x => x == testId);
+                if (index < testIdsOrdered.Count - 1)
+                {
+                    while (AnalyseBlocks.Find(x => x.testId == testIdsOrdered[index + 1]).formed && index < testIdsOrdered.Count - 1)
+                    {
+                        index++;
+                    }
+                    return AnalyseBlocks.Find(x => x.testId == testIdsOrdered[index + 1]);
+                }
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
         #nullable disable
 
@@ -84,7 +118,7 @@ namespace AssistantProcessor.Models
         {
             CoreFile coreFile = JsonConvert.DeserializeObject<CoreFile>(source);
             coreFile.ITestChangedObservers = new List<ITestChangedObserver>();
-            coreFile.IRowChangedObservers = new List<IRowChangedObserver>();
+            coreFile.IRowChangedObservers = new IRowChangedIterator();
             coreFile.actionsActionBlocksNext = new Stack<ActionBlock>();
             coreFile.actionsActionBlocksPrev = new Stack<ActionBlock>();
             coreFile.filterPatterns.Decode();
@@ -168,6 +202,10 @@ namespace AssistantProcessor.Models
                             rowAnalized.visibleEditedContent = rowAnalized.visibleEditedContent + rowNext.hiddenContent +
                                                                rowNext.visibleEditedContent;
                             rowNext.includedToAnalysis = false;
+                            foreach (var t in rowNext.nativeNumbers)
+                            {
+                                rowNatives.Find(x => x.rowNumber == t).included = true;
+                            }
                             foreach (var iRowChangedObserver in IRowChangedObservers)
                             {
                                 if (iRowChangedObserver.GetType() != GetType())
@@ -225,6 +263,10 @@ namespace AssistantProcessor.Models
                 ObjectMemento o1 = SaveState();
                 ObjectMemento o2 = rowAnalized.SaveState();
                 rowAnalized.includedToAnalysis = false;
+                foreach (var t in rowAnalized.nativeNumbers)
+                {
+                    rowNatives.Find(x => x.rowNumber == t).included = false;
+                }
                 TestAnalized testAnalized = AnalyseBlocks.Find(x => x.testId == rowAnalized.testId);
                 actionBlock = new ActionBlock();
                 if (testAnalized != null)
