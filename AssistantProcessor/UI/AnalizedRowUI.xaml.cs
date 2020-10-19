@@ -11,7 +11,7 @@ namespace AssistantProcessor.UI
 {
     public partial class AnalizedRowUI : UserControl, IRowChangedObserver
     {
-        private readonly RowAnalized rowAnalized;
+        public readonly RowAnalized rowAnalized;
         private readonly AnalizedTestUI analizedTestUi;
         private readonly CoreFile coreFile;
         private readonly bool inited;
@@ -97,20 +97,12 @@ namespace AssistantProcessor.UI
         {
             switch (e.Key)
             {
-                case Key.Enter:
-                    VisibleEditingTextBox.Text = rowAnalized.visibleEditedContent;
-                    break;
                 default:
                     rowAnalized.visibleEditedContent = VisibleEditingTextBox.Text;
+                    analizedTestUi.CheckWin1251();
                     break;
-            }
-        }
-
-        private void VisibleEditingTextBox_OnKeyDown(object sender, KeyEventArgs e)
-        {
-            switch (e.Key)
-            {
                 case Key.Enter:
+                    VisibleEditingTextBox.Text = rowAnalized.visibleEditedContent;
                     if (VisibleEditingTextBox.CaretIndex > 0 &&
                         VisibleEditingTextBox.CaretIndex < VisibleEditingTextBox.Text.Length)
                     {
@@ -130,6 +122,7 @@ namespace AssistantProcessor.UI
                     }
                     else
                     {
+                        rowAnalized.visibleEditedContent = VisibleEditingTextBox.Text;
                         analizedTestUi.CheckWin1251();
                     }
                     break;
@@ -143,11 +136,9 @@ namespace AssistantProcessor.UI
                     }
                     else
                     {
+                        rowAnalized.visibleEditedContent = VisibleEditingTextBox.Text; 
                         analizedTestUi.CheckWin1251();
                     }
-                    break;
-                default:
-                    analizedTestUi.CheckWin1251();
                     break;
             }
         }

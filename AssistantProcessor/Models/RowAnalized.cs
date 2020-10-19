@@ -93,7 +93,6 @@ namespace AssistantProcessor.Models
                             if (filterPatterns.taskRegexes[i].IsMatch(content))
                             {
                                 coreFile.OnNextTestDetected();
-                                analized = true;
                                 MatchCollection match = filterPatterns.taskRegexes[i].Matches(content);
                                 hiddenContent = match[0].Value;
                                 visibleEditedContent = content.Replace(hiddenContent, "").Trim();
@@ -101,6 +100,7 @@ namespace AssistantProcessor.Models
                                 coreFile.tempTest.project.Add(rowId);
                                 coreFile.tempTest.task.Add(rowId);
                                 rowType = RowType.TASK;
+                                return;
                             }
                             i++;
                         }

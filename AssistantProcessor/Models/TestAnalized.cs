@@ -30,10 +30,15 @@ namespace AssistantProcessor.Models
             project = new List<string>();
         }
 
+        public int CountVisible(List<string> ids, CoreFile coreFile)
+        {
+            return ids.Count(id => coreFile.Rows.Find(x => x.rowId == id).includedToAnalysis);
+        }
+
         public List<string> OrderedConnectedIds(List<string> orderedRowIds)
         {
             List<string> ret = new List<string>();
-            int lowerIndex = project.Select(rowId => orderedRowIds.FindIndex(x => x == rowId)).Concat(new[] {0}).Min();
+            int lowerIndex = project.Select(rowId => orderedRowIds.FindIndex(x => x == rowId)).Concat(new int[]{}).Min();
             for (int i = lowerIndex; i < project.Count + lowerIndex; i++)
             {
                 ret.Add(orderedRowIds[i]);

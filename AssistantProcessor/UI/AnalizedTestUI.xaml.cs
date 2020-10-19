@@ -101,18 +101,24 @@ namespace AssistantProcessor.UI
             }
 
             List<string> ids = testAnalized.OrderedConnectedIds(coreFile.rowsIdsOrdered);
-            for (int i = 0; i < ids.Count; i++)
+            int i = 0;
+            foreach (var id in ids)
             {
-                AnalizedRowUI analizedRowUi = new AnalizedRowUI(coreFile.Rows.First(x => x.rowId == ids[i]), coreFile, i, this);
-                analizedRowUis.Add(analizedRowUi);
-                RowsHolder.Children.Add(analizedRowUi);
+                RowAnalized rowAnalized = coreFile.Rows.First(x => x.rowId == id);
+                if (rowAnalized.includedToAnalysis)
+                {
+                    AnalizedRowUI analizedRowUi = new AnalizedRowUI(rowAnalized, coreFile, i, this);
+                    analizedRowUis.Add(analizedRowUi);
+                    RowsHolder.Children.Add(analizedRowUi);
+                    i++;
+                }
             }
         }
 
         private void CheckTestValidaty()
         {
             bool enableFormButton = true;
-            switch (testAnalized.correctAnswers.Count)
+            switch (testAnalized.CountVisible(testAnalized.correctAnswers, coreFile))
             {
                 case 0:
                     enableFormButton = false;
@@ -133,7 +139,7 @@ namespace AssistantProcessor.UI
             {
                 enableFormButton = false;
             }
-            if (testAnalized.task.Count == 0)
+            if (testAnalized.CountVisible(testAnalized.task, coreFile) == 0)
             {
                 enableFormButton = false;
                 NoTask.Visibility = Visibility.Visible;
@@ -142,7 +148,7 @@ namespace AssistantProcessor.UI
             {
                 NoTask.Visibility = Visibility.Collapsed;
             }
-            NoComments.Visibility = testAnalized.comments.Count == 0 ? Visibility.Visible : Visibility.Hidden;
+            NoComments.Visibility = testAnalized.CountVisible(testAnalized.comments, coreFile) == 0 ? Visibility.Visible : Visibility.Hidden;
             FormTest.IsEnabled = enableFormButton;
         }
 

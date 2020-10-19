@@ -207,11 +207,27 @@ namespace AssistantProcessor.Models
             {
                 rowAnalized = Rows.Find(x => x.rowId == rowIdIdTop);
                 nextRow = rowsIdsOrdered.IndexOf(rowIdIdTop) + 1;
+                while (!Rows.Find(x => x.rowId == rowsIdsOrdered[nextRow]).includedToAnalysis)
+                {
+                    nextRow++;
+                    if (nextRow == rowsIdsOrdered.Count)
+                    {
+                        return;
+                    }
+                }
             }
             else
             {
                 rowAnalized = Rows.Find(x => x.rowId == rowIdBottom);
                 nextRow = rowsIdsOrdered.IndexOf(rowIdBottom) - 1;
+                while (!Rows.Find(x => x.rowId == rowsIdsOrdered[nextRow]).includedToAnalysis)
+                {
+                    nextRow--;
+                    if (nextRow < 0)
+                    {
+                        return;
+                    }
+                }
             }
             if (nextRow < rowsIdsOrdered.Count)
             {
@@ -226,8 +242,18 @@ namespace AssistantProcessor.Models
                         {
                             ObjectMemento o2 = rowNext.SaveState();
                             ObjectMemento o1 = rowAnalized.SaveState();
-                            rowAnalized.visibleEditedContent = rowAnalized.visibleEditedContent + rowNext.hiddenContent +
-                                                               rowNext.visibleEditedContent;
+                            if (rowIdBottom == null)
+                            {
+                                rowAnalized.visibleEditedContent = rowAnalized.visibleEditedContent + " " + rowNext.hiddenContent +
+                                                                   rowNext.visibleEditedContent;
+                            }
+                            else
+                            {
+                                rowAnalized.visibleEditedContent = rowNext.visibleEditedContent + " " + rowAnalized.hiddenContent +
+                                                                   rowAnalized.visibleEditedContent;
+                                rowAnalized.hiddenContent = rowNext.hiddenContent;
+                            }
+                            rowAnalized.nativeNumbers.AddRange(rowNext.nativeNumbers);
                             rowNext.includedToAnalysis = false;
                             foreach (var t in rowNext.nativeNumbers)
                             {
@@ -241,15 +267,12 @@ namespace AssistantProcessor.Models
                                 }
                             }
                             actionBlock = new ActionBlock();
-                            if (testAnalized != testAnalized2)
-                            {
-                                ObjectMemento o3 = testAnalized.SaveState();
-                                ObjectMemento o4 = testAnalized2.SaveState();
-                                testAnalized2.DisconnectRow(rowNext.rowId);
-                                testAnalized.ConnectToRow(rowNext);
-                                actionBlock.AddAction(EditorAction.ROW_CONCATENATED, o3);
-                                actionBlock.AddAction(EditorAction.ROW_CONCATENATED, o4);
-                            }
+                            ObjectMemento o3 = testAnalized.SaveState();
+                            ObjectMemento o4 = testAnalized2.SaveState();
+                            testAnalized2.DisconnectRow(rowNext.rowId);
+                            testAnalized.ConnectToRow(rowNext);
+                            actionBlock.AddAction(EditorAction.ROW_CONCATENATED, o3);
+                            actionBlock.AddAction(EditorAction.ROW_CONCATENATED, o4);
                             actionBlock.AddAction(EditorAction.ROW_CONCATENATED, o1);
                             actionBlock.AddAction(EditorAction.ROW_CONCATENATED, o2);
                             FinishAction();
@@ -384,6 +407,7 @@ namespace AssistantProcessor.Models
             if (rowAnalized != null)
             {
                 ObjectMemento o2 = rowAnalized.SaveState();
+                rowAnalized.rowType = rowType;
                 int thisTest = testIdsOrdered.IndexOf(rowAnalized.testId);
                 TestAnalized test = AnalyseBlocks.FirstOrDefault(x => x.testId == testIdsOrdered[thisTest]);
                 if (test != null)
