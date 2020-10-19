@@ -14,7 +14,7 @@ namespace AssistantProcessor.Interfaces
         private AnalizedTestUI? analizedTestUi;
         public IEnumerator<IRowChangedObserver> GetEnumerator()
         {
-            yield return coreFile;
+            yield return coreFile!;
             foreach (var analizedRow in analizedRows)
             {
                 yield return analizedRow;
@@ -23,7 +23,10 @@ namespace AssistantProcessor.Interfaces
             {
                 yield return nativeRowUi;
             }
-            yield return analizedTestUi;
+            if (analizedTestUi != null)
+            {
+                yield return analizedTestUi;
+            }
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -33,9 +36,9 @@ namespace AssistantProcessor.Interfaces
 
         public void Add(IRowChangedObserver item)
         {
-            if (item.GetType() == typeof(CoreFile))
+            if (item is CoreFile file)
             {
-                coreFile = (CoreFile?) item;
+                coreFile = file;
             }
             if (item.GetType() == typeof(AnalizedTestUI))
             {
@@ -67,7 +70,7 @@ namespace AssistantProcessor.Interfaces
 
         public bool Contains(IRowChangedObserver item)
         {
-            if (item.GetType() == typeof(CoreFile))
+            if (item is CoreFile)
             {
                 return item.Equals(coreFile);
             }
@@ -89,7 +92,7 @@ namespace AssistantProcessor.Interfaces
 
         public bool Remove(IRowChangedObserver item)
         {
-            if (item.GetType() == typeof(CoreFile))
+            if (item is CoreFile)
             {
                 coreFile = null;
                 return true;
@@ -137,7 +140,7 @@ namespace AssistantProcessor.Interfaces
         public bool IsReadOnly { get; }
         public int IndexOf(IRowChangedObserver item)
         {
-            if (item.GetType() == typeof(CoreFile))
+            if (item is CoreFile)
             {
                 return 0;
             }

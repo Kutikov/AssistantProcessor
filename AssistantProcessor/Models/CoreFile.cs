@@ -1,47 +1,73 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml.Xsl;
 using AssistantProcessor.Enums;
 using AssistantProcessor.Interfaces;
 using AssistantProcessor.UI;
 using Newtonsoft.Json;
+#pragma warning disable 8604
 
 namespace AssistantProcessor.Models
 {
     public class CoreFile : IRowChangedObserver, ITestChangedObserver, IUndoRedoObject
     {
-        public string fileSource;
-        public string content;
-        public FilterPatterns filterPatterns;
+        public string? fileSource;
+        public string? content;
+        public FilterPatterns? filterPatterns;
         public List<RowNative> rowNatives;
         public ParseType ParseType;
         public List<RowAnalized> Rows;
         public List<TestAnalized> AnalyseBlocks;
         public List<string> rowsIdsOrdered;
         public List<string> testIdsOrdered;
-        private ActionBlock actionBlock;
+        private ActionBlock? actionBlock;
 
         [JsonIgnore] public Stack<ActionBlock> actionsActionBlocksPrev;
         [JsonIgnore] public Stack<ActionBlock> actionsActionBlocksNext;
         [JsonIgnore] public IRowChangedIterator IRowChangedObservers;
         [JsonIgnore] public List<ITestChangedObserver> ITestChangedObservers;
 
-        [JsonIgnore] public TestAnalized tempTest;
+        [JsonIgnore] public TestAnalized? tempTest;
         [JsonIgnore] public MainWindow mainWindow;
 
         #nullable enable
-        public CoreFile(string? fileSource, string? content, MainWindow mainWindow)
+
+        private CoreFile(string fileSource, MainWindow mainWindow, bool isFile)
         {
-            this.content = content;
-            this.fileSource = fileSource;
             this.mainWindow = mainWindow;
+            if (isFile)
+            {
+                this.fileSource = fileSource;
+            }
+            else
+            {
+                this.content = fileSource;
+            }
             rowsIdsOrdered = new List<string>();
             testIdsOrdered = new List<string>();
-            ITestChangedObservers = new List<ITestChangedObserver>();
-            IRowChangedObservers = new IRowChangedIterator();
+            rowNatives = new List<RowNative>();
+            ITestChangedObservers = new List<ITestChangedObserver> {this};
+            IRowChangedObservers = new IRowChangedIterator {this};
             actionsActionBlocksNext = new Stack<ActionBlock>();
             actionsActionBlocksPrev = new Stack<ActionBlock>();
+            AnalyseBlocks = new List<TestAnalized>();
+            Rows = new List<RowAnalized>();
+            ParseType = ParseType.LINEAR;
+        }
+
+        public static CoreFile GetInstance(string? fileSource, string? content, MainWindow mainWindow)
+        {
+            bool isFile = fileSource != null;
+            var coreFile = new CoreFile((isFile ? fileSource : content)!, mainWindow, isFile);
+            if (isFile)
+            {
+                coreFile.DecodeFile(fileSource);
+            }
+            else
+            {
+                coreFile.DestructText(content);
+            }
+            return coreFile;
         }
 
         private void DecodeFile(string fileSource)
@@ -51,8 +77,7 @@ namespace AssistantProcessor.Models
 
         private void DestructText(string text)
         {
-            rowNatives = new List<RowNative>();
-            string[] enteries = text.Split(new[] {"\n"}, StringSplitOptions.None);
+            string[] enteries = text.Replace("\r", "").Split(new[] {"\n"}, StringSplitOptions.None);
             for (int i = 0; i < enteries.Length; i++)
             {
                 rowNatives.Add(new RowNative(enteries[i], i));
@@ -69,6 +94,7 @@ namespace AssistantProcessor.Models
         {
             this.filterPatterns = filterPatterns;
             this.ParseType = ParseType;
+            tempTest = new TestAnalized(0, "test" + 0);
             foreach (var rowNative in rowNatives)
             {
                 if (rowNative.included)
@@ -80,6 +106,7 @@ namespace AssistantProcessor.Models
                     }
                 }
             }
+            OnNextTestDetected();
             AnalizedTestUI analizedTestUi = new AnalizedTestUI(this);
             mainWindow.EditorHolder.Children.Add(analizedTestUi);
             analizedTestUi.ReInit(AnalyseBlocks.Find(X => X.testId == testIdsOrdered[0]));

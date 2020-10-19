@@ -6,9 +6,9 @@ namespace AssistantProcessor.Models
 {
     public class FilterPatterns
     {
-        public List<string> taskPattern;
-        public List<string> correctAnswerPattern;
-        public List<string> wrongAnswerPattern;
+        public List<string>? taskPattern;
+        public List<string>? correctAnswerPattern;
+        public List<string>? wrongAnswerPattern;
         public bool tasksDividedByNewRow;
 
         [JsonIgnore] public List<Regex> taskRegexes = new List<Regex>();
@@ -79,6 +79,8 @@ namespace AssistantProcessor.Models
             }
         }
 
+        public static bool[] task = {true, false, false};
+
         public static Regex[] taskPatterns =
         {
             new Regex(@"^\d+\."),       //"13."
@@ -86,6 +88,8 @@ namespace AssistantProcessor.Models
             new Regex(@"^\d+\s"),       //"13 "
             new Regex(@"^\d+\.\d+\s")   //"13.13 "
         };
+
+        public static bool[] trueAns = { true, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false};
 
         public static Regex[] trueAnswerPatterns =
         {
@@ -99,28 +103,30 @@ namespace AssistantProcessor.Models
             new Regex(@"^\d\.\*"),      //"2.*"
             new Regex(@"^\d\s\*"),      //"2 *"
             new Regex(@"^\d\.\s\*"),    //"2. *"
-            new Regex(@"^\w\*"),        //"c*"
-            new Regex(@"^\w\.\*"),      //"c.*"
-            new Regex(@"^\w\s\*"),      //"c *"
-            new Regex(@"^\w\.\s\*"),    //"c. *"
+            new Regex(@"^\D\*"),        //"c*"
+            new Regex(@"^\D\.\*"),      //"c.*"
+            new Regex(@"^\D\s\*"),      //"c *"
+            new Regex(@"^\D\.\s\*"),    //"c. *"
             new Regex(@"^\d\+"),        //"2+"
             new Regex(@"^\d\.\+"),      //"2.+"
             new Regex(@"^\d\s\+"),      //"2 +"
             new Regex(@"^\d\.\s\+"),    //"2. +"
-            new Regex(@"^\w\+"),        //"c+"
-            new Regex(@"^\w\.\+"),      //"c.+"
-            new Regex(@"^\w\s\+"),      //"c +"
-            new Regex(@"^\w\.\s\+"),    //"c. +"
+            new Regex(@"^\D\+"),        //"c+"
+            new Regex(@"^\D\.\+"),      //"c.+"
+            new Regex(@"^\D\s\+"),      //"c +"
+            new Regex(@"^\D\.\s\+"),    //"c. +"
             new Regex(@"^\*"),          //"*text" & "* text"
             new Regex(@"^\+")           //"+text" & "+ text"
         };
+
+        public static bool[] falseAns = {false, false, false, true, false, false};
 
         public static Regex[] falseAnswerPatterns =
         {
             new Regex(@"^\d\."),        //"2."
             new Regex(@"^\d\s"),        //"2 "
-            new Regex(@"^\w\s"),        //"c "
-            new Regex(@"^\w\.\s"),      //"c. "
+            new Regex(@"^\D\s"),        //"c "
+            new Regex(@"^\D\.\s"),      //"c. "
             new Regex(@"^-"),           //"-"
             new Regex(@"^~")            //"~"
         };

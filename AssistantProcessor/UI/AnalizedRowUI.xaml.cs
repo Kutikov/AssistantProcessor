@@ -22,6 +22,10 @@ namespace AssistantProcessor.UI
             this.rowAnalized = rowAnalized;
             this.coreFile = coreFile;
             this.analizedTestUi = analizedTestUi;
+            WrongRadio.GroupName = "RowType" + rowAnalized.rowId;
+            CorrectRadio.GroupName = "RowType" + rowAnalized.rowId;
+            TaskRadio.GroupName = "RowType" + rowAnalized.rowId;
+            CommentRadio.GroupName = "RowType" + rowAnalized.rowId;
             VisibleEditingTextBox.Text = rowAnalized.visibleEditedContent;
             switch (rowAnalized.rowType)
             {
@@ -151,8 +155,8 @@ namespace AssistantProcessor.UI
         public bool CheckWin1251()
         {
             VisibleEditingTextBox.Foreground = new SolidColorBrush(Color.FromRgb(255, 255, 255));
-            Encoding win1251 = Encoding.GetEncoding("windows-1251");
-            Encoding utf8 = Encoding.UTF8;
+            Encoding win1251 = Portable.Text.Encoding.GetEncoding("windows-1251");
+            Encoding utf8 = Portable.Text.Encoding.UTF8;
             byte[] utf8Bytes = utf8.GetBytes(rowAnalized.visibleEditedContent);
             byte[] win1251Bytes = Encoding.Convert(utf8, win1251, utf8Bytes);
             string str = win1251.GetString(win1251Bytes);

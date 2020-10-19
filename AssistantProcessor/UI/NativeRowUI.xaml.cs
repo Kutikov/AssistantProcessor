@@ -19,7 +19,7 @@ namespace AssistantProcessor.UI
             InitializeComponent();
             this.rowNative = rowNative;
             this.coreFile = coreFile;
-            RowNumberText.Text = rowNative.rowNumber.ToString();
+            RowNumberText.Text = (rowNative.rowNumber + 1).ToString();
             NativeText.Text = this.rowNative.content;
             coreFile.IRowChangedObservers.Add(this);
             Root.Background = new SolidColorBrush((Color) ColorConverter.ConvertFromString("#003300"));

@@ -43,6 +43,8 @@ namespace AssistantProcessor.Models
                         hiddenContent = match[0].Value;
                         visibleEditedContent = content.Replace(hiddenContent, "").Trim();
                         testId = coreFile.tempTest.testId;
+                        coreFile.tempTest.project.Add(rowId);
+                        coreFile.tempTest.correctAnswers.Add(rowId);
                         rowType = RowType.CORRECT_ANSWER;
                     }
                     i++;
@@ -57,15 +59,28 @@ namespace AssistantProcessor.Models
                         hiddenContent = match[0].Value;
                         visibleEditedContent = content.Replace(hiddenContent, "").Trim();
                         testId = coreFile.tempTest.testId;
+                        coreFile.tempTest.project.Add(rowId);
+                        coreFile.tempTest.wrongAnswers.Add(rowId);
                         rowType = RowType.WRONG_ANSWER;
                     }
                     i++;
                 }
                 if (coreFile.tempTest.correctAnswers.Count == 0)
                 {
-                    visibleEditedContent = content.Trim();
-                    hiddenContent = "";
+                    if (filterPatterns.taskRegexes[0].IsMatch(content))
+                    {
+                        MatchCollection match = filterPatterns.taskRegexes[0].Matches(content);
+                        hiddenContent = match[0].Value;
+                        visibleEditedContent = content.Replace(hiddenContent, "").Trim();
+                    }
+                    else
+                    {
+                        visibleEditedContent = content.Trim();
+                        hiddenContent = "";
+                    }
                     testId = coreFile.tempTest.testId;
+                    coreFile.tempTest.project.Add(rowId);
+                    coreFile.tempTest.task.Add(rowId);
                     rowType = RowType.TASK;
                 }
                 else
@@ -83,16 +98,20 @@ namespace AssistantProcessor.Models
                                 hiddenContent = match[0].Value;
                                 visibleEditedContent = content.Replace(hiddenContent, "").Trim();
                                 testId = coreFile.tempTest.testId;
+                                coreFile.tempTest.project.Add(rowId);
+                                coreFile.tempTest.task.Add(rowId);
                                 rowType = RowType.TASK;
                             }
                             i++;
                         }
                     }
-                    if (!analized || coreFile.tempTest.wrongAnswers.Count == 0)
+                    if ((!analized || coreFile.tempTest.wrongAnswers.Count == 0) && rowType != RowType.CORRECT_ANSWER)
                     {
                         hiddenContent = "";
                         visibleEditedContent = content.Trim();
                         rowType = RowType.WRONG_ANSWER;
+                        coreFile.tempTest.project.Add(rowId);
+                        coreFile.tempTest.wrongAnswers.Add(rowId);
                         testId = coreFile.tempTest.testId;
                     }
                 }

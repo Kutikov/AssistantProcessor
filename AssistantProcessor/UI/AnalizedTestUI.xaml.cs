@@ -83,6 +83,8 @@ namespace AssistantProcessor.UI
                     NoCommentsText.Visibility = Visibility.Visible;
                     break;
             }
+
+            Dialog.Visibility = Visibility.Visible;
         }
 
         private void CloseButton_OnMouseUp(object sender, MouseButtonEventArgs e)
