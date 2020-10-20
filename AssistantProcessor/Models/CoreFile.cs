@@ -189,6 +189,10 @@ namespace AssistantProcessor.Models
         public void Export()
         {
             string exportString = "";
+            if (ParseType == ParseType.PREMIUM)
+            {
+                exportString = "<GIFT>\n";
+            }
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             foreach (var testAnalized in AnalyseBlocks)
             {
@@ -202,7 +206,13 @@ namespace AssistantProcessor.Models
                 byte[] win1251Bytes = Encoding.Convert(utf8, win1251, utf8Bytes);
                 exportString = win1251.GetString(win1251Bytes);
             }
-            File.WriteAllText(Path.Combine(SpecialDirectories.Desktop, "main.qst"), exportString, System.Text.Encoding.GetEncoding(1251));
+            Encoding encoding = ParseType switch
+            {
+                ParseType.PREMIUM => Encoding.UTF8,
+                ParseType.LINEAR => Encoding.GetEncoding(1251),
+                _ => Encoding.UTF8
+            };
+            File.WriteAllText(Path.Combine(SpecialDirectories.Desktop, "main2.qst"), exportString, encoding);
         }
         #endregion
 

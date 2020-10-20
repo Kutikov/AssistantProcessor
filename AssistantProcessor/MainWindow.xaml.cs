@@ -16,7 +16,7 @@ namespace AssistantProcessor
         {
             InitializeComponent();
             coreFile = CoreFile.GetInstance(null, tr, this);
-            coreFile.AI_Analize(new FilterPatterns(FilterPatterns.task, FilterPatterns.trueAns, FilterPatterns.falseAns, false), ParseType.LINEAR);
+            coreFile.AI_Analize(new FilterPatterns(FilterPatterns.task, FilterPatterns.trueAns, FilterPatterns.falseAns, false), ParseType.PREMIUM);
         }
 
         private void ExportButton_OnClick(object sender, RoutedEventArgs e)

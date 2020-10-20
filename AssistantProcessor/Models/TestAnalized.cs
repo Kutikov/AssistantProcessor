@@ -83,6 +83,49 @@ namespace AssistantProcessor.Models
                     }
                     break;
                 case ParseType.PREMIUM:
+                    if (formed)
+                    {
+                        string test = "::" + number + "::\n";
+                        foreach (string task1 in task)
+                        {
+                            RowAnalized rowAnalized = coreFile.Rows.Find(x => x.rowId == task1)!;
+                            if (rowAnalized.includedToAnalysis)
+                            {
+                                test += rowAnalized.visibleEditedContent + " ";
+                            }
+                        }
+                        test += "\n{";
+                        foreach (string true1 in correctAnswers)
+                        {
+                            RowAnalized rowAnalized = coreFile.Rows.Find(x => x.rowId == true1)!;
+                            if (rowAnalized.includedToAnalysis)
+                            {
+                                test += "\n=" + rowAnalized.visibleEditedContent;
+                            }
+                        }
+                        foreach (string false1 in wrongAnswers)
+                        {
+                            RowAnalized rowAnalized = coreFile.Rows.Find(x => x.rowId == false1)!;
+                            if (rowAnalized.includedToAnalysis)
+                            {
+                                test += "\n~" + rowAnalized.visibleEditedContent;
+                            }
+                        }
+                        if (CountVisible(comments, coreFile) > 0)
+                        {
+                            test += "\n#\n";
+                            foreach (string comment1 in comments)
+                            {
+                                RowAnalized rowAnalized = coreFile.Rows.Find(x => x.rowId == comment1)!;
+                                if (rowAnalized.includedToAnalysis)
+                                {
+                                    test += rowAnalized.visibleEditedContent + " ";
+                                }
+                            }
+                        }
+                        return test + "\n}\n";
+                    }
+
                     break;
             }
             return "";
