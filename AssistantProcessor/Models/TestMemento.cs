@@ -13,7 +13,9 @@ namespace AssistantProcessor.Models
         public bool Formed { get; }
         public bool Included { get; }
 
-        public TestMemento(List<string> Task, List<string> CorrectAnswers, List<string> WrongAnswers, List<string> Comments, List<string> Project, int Number, bool Formed, bool Included)
+        private readonly string testId;
+
+        public TestMemento(List<string> Task, List<string> CorrectAnswers, List<string> WrongAnswers, List<string> Comments, List<string> Project, int Number, bool Formed, bool Included, string testId)
         {
             this.Comments = Comments;
             this.CorrectAnswers = CorrectAnswers;
@@ -23,6 +25,13 @@ namespace AssistantProcessor.Models
             this.WrongAnswers = WrongAnswers;
             this.Task = Task;
             this.Included = Included;
+            this.testId = testId;
+        }
+
+        public ObjectMemento FindAndRestore(CoreFile coreFile)
+        {
+            TestAnalized? testAnalized = coreFile.AnalyseBlocks.Find(x => x.testId == testId);
+            return testAnalized?.RestoreState(this)!;
         }
     }
 }

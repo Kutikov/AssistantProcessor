@@ -12,7 +12,9 @@ namespace AssistantProcessor.Models
         public string VisibleEditedContent { get; }
         public string TestId { get; }
 
-        public RowMemento(RowType RowType, List<int> NativeNumbers, bool IncludedToAnalysis, string HiddenContent, string VisibleEditedContent, string testId)
+        private readonly string rowId;
+
+        public RowMemento(RowType RowType, List<int> NativeNumbers, bool IncludedToAnalysis, string HiddenContent, string VisibleEditedContent, string testId, string rowId)
         {
             this.TestId = testId;
             this.HiddenContent = HiddenContent;
@@ -20,6 +22,13 @@ namespace AssistantProcessor.Models
             this.NativeNumbers = NativeNumbers;
             this.VisibleEditedContent = VisibleEditedContent;
             this.RowType = RowType;
+            this.rowId = rowId;
+        }
+
+        public ObjectMemento FindAndRestore(CoreFile coreFile)
+        {
+            RowAnalized? rowAnalized = coreFile.Rows.Find(x => x.rowId == rowId);
+            return rowAnalized?.RestoreState(this)!;
         }
     }
 }

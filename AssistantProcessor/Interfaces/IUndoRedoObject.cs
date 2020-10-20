@@ -5,6 +5,6 @@ namespace AssistantProcessor.Interfaces
     public interface IUndoRedoObject
     {
         public ObjectMemento SaveState();
-        public void RestoreState(ObjectMemento objectMemento);
+        public ObjectMemento RestoreState(ObjectMemento objectMemento);
     }
 }

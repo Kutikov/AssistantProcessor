@@ -32,7 +32,7 @@ namespace AssistantProcessor.Models
 
         public int CountVisible(List<string> ids, CoreFile coreFile)
         {
-            return ids.Count(id => coreFile.Rows.Find(x => x.rowId == id).includedToAnalysis);
+            return ids.Count(id => coreFile.Rows.Find(x => x.rowId == id)!.includedToAnalysis);
         }
 
         public string GetEncodedTest(ParseType parseType, CoreFile coreFile)
@@ -173,16 +173,22 @@ namespace AssistantProcessor.Models
 
         private TestAnalized()
         {
-
+            testId = "";
+            task = new List<string>();
+            correctAnswers = new List<string>();
+            comments = new List<string>();
+            wrongAnswers = new List<string>();
+            project = new List<string>();
         }
 
         public ObjectMemento SaveState()
         {
-            return new TestMemento(task, correctAnswers, wrongAnswers, comments, project, number, formed, included);
+            return new TestMemento(task, correctAnswers, wrongAnswers, comments, project, number, formed, included, testId);
         }
 
-        public void RestoreState(ObjectMemento objectMemento)
+        public ObjectMemento RestoreState(ObjectMemento objectMemento)
         {
+            TestMemento testMemento2 = new TestMemento(task, correctAnswers, wrongAnswers, comments, project, number, formed, included, testId);
             TestMemento testMemento = (TestMemento) objectMemento;
             task = testMemento.Task;
             correctAnswers = testMemento.CorrectAnswers;
@@ -192,11 +198,12 @@ namespace AssistantProcessor.Models
             number = testMemento.Number;
             formed = testMemento.Formed;
             included = testMemento.Included;
+            return testMemento2;
         }
 
         public bool HasVisibleRows(List<RowAnalized> rows)
         {
-            return project.Any(row => rows.Find(x => x.rowId == row).includedToAnalysis);
+            return project.Any(row => rows.Find(x => x.rowId == row)!.includedToAnalysis);
         }
 
         public TestAnalized Clone()

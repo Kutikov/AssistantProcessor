@@ -38,6 +38,17 @@ namespace AssistantProcessor.UI
             CheckTestValidaty();
         }
 
+        public TestAnalized GetTestAnalized()
+        {
+            return testAnalized!;
+        }
+
+        public void Undo()
+        {
+            RowUIsRedraw();
+            CheckTestValidaty();
+        }
+
         private void NextAnalizedRow_OnClick(object sender, RoutedEventArgs e)
         {
             foreach (var iRowChangedObserver in coreFile.IRowChangedObservers)

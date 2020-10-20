@@ -33,6 +33,7 @@ namespace AssistantProcessor.Models
 
         [JsonIgnore] public TestAnalized? tempTest;
         [JsonIgnore] public MainWindow mainWindow;
+        [JsonIgnore] private AnalizedTestUI? analizedTestUi;
 
         #nullable enable
 
@@ -111,7 +112,7 @@ namespace AssistantProcessor.Models
                 }
             }
             OnNextTestDetected();
-            AnalizedTestUI analizedTestUi = new AnalizedTestUI(this);
+            analizedTestUi = new AnalizedTestUI(this);
             mainWindow.EditorHolder.Children.Add(analizedTestUi);
             analizedTestUi.ReInit(AnalyseBlocks.Find(X => X.testId == testIdsOrdered[0]));
         }
@@ -160,15 +161,68 @@ namespace AssistantProcessor.Models
         #region UndoRedo
         private void FinishAction()
         {
-            actionsActionBlocksPrev.Push(actionBlock.Clone());
+            actionsActionBlocksPrev.Push(actionBlock?.Clone());
             actionBlock = null;
+        }
+
+        private ActionBlock ImplementObjectsChanges(ActionBlock result)
+        {
+            ActionBlock changes = new ActionBlock();
+            KeyValuePair<EditorAction, IdsRowMemento> idsRowMemento = new KeyValuePair<EditorAction, IdsRowMemento>();
+            for (int i = 0; i < result.Mementoes.Count; i++)
+            {
+                if (result.Mementoes[i].GetType() == typeof(IdsRowMemento))
+                {
+                    idsRowMemento = new KeyValuePair<EditorAction, IdsRowMemento>(result.EditorActions[i], (IdsRowMemento) result.Mementoes[i]);
+                    break;
+                }
+            }
+            if (idsRowMemento.Value != null)
+            {
+                changes.AddAction(idsRowMemento.Key, RestoreState(idsRowMemento.Value));
+            }
+            Dictionary<RowMemento, EditorAction> rowMementoes = new Dictionary<RowMemento, EditorAction>();
+            for (int i = 0; i < result.Mementoes.Count; i++)
+            {
+                if (result.Mementoes[i].GetType() == typeof(RowMemento))
+                {
+                    rowMementoes.Add((RowMemento)result.Mementoes[i], result.EditorActions[i]);
+                }
+            }
+            Dictionary<TestMemento, EditorAction> testMementoes = new Dictionary<TestMemento, EditorAction>();
+            for (int i = 0; i < result.Mementoes.Count; i++)
+            {
+                if (result.Mementoes[i].GetType() == typeof(TestMemento))
+                {
+                    testMementoes.Add((TestMemento)result.Mementoes[i], result.EditorActions[i]);
+                }
+            }
+            foreach (var (rowMemento, action) in rowMementoes)
+            {
+                changes.AddAction(action, rowMemento.FindAndRestore(this));
+            }
+            foreach (var (testMemento, action) in testMementoes)
+            {
+                changes.AddAction(action, testMemento.FindAndRestore(this));
+            }
+            return changes;
         }
 
         public bool Undo()
         {
             if (actionsActionBlocksPrev.TryPop(out ActionBlock result))
             {
-                //restore
+                ActionBlock response = ImplementObjectsChanges(result);
+                if (result.EditorActions.Contains(EditorAction.TEST_FORMED))
+                {
+                    string prevTestId = testIdsOrdered[testIdsOrdered.IndexOf(analizedTestUi?.GetTestAnalized().testId) - 1];
+                    analizedTestUi?.ReInit(AnalyseBlocks.Find(x => x.testId == prevTestId)!);
+                }
+                else
+                {
+                    analizedTestUi?.Undo();
+                }
+                actionsActionBlocksNext.Push(response.Clone());
                 return true;
             }
             return false;
@@ -178,13 +232,24 @@ namespace AssistantProcessor.Models
         {
             if (actionsActionBlocksNext.TryPop(out ActionBlock result))
             {
+                ActionBlock response = ImplementObjectsChanges(result);
+                actionsActionBlocksPrev.Push(response.Clone());
+                if (result.EditorActions.Contains(EditorAction.TEST_FORMED))
+                {
+                    string prevTestId = testIdsOrdered[testIdsOrdered.IndexOf(analizedTestUi?.GetTestAnalized().testId) + 1];
+                    analizedTestUi?.ReInit(AnalyseBlocks.Find(x => x.testId == prevTestId)!);
+                }
+                else
+                {
+                    analizedTestUi?.Undo();
+                }
                 return true;
             }
             return false;
         }
         #endregion
 
-        #region Export
+        #region ExportImport
 
         public void Export()
         {
@@ -461,8 +526,12 @@ namespace AssistantProcessor.Models
 
         public void OnTestAdded(TestAnalized test)
         {
+            ObjectMemento o1 = SaveState();
             AnalyseBlocks.Add(test);
             testIdsOrdered.Add(test.testId);
+            actionBlock = new ActionBlock();
+            actionBlock.AddAction(EditorAction.TEST_ADDED, o1);
+            FinishAction();
         }
 
         public void OnTestAdded(List<string> rowIds)
@@ -513,7 +582,9 @@ namespace AssistantProcessor.Models
             ObjectMemento o1 = test.SaveState();
             test.included = false;
             testIdsOrdered.Remove(test.testId);
+            actionBlock = new ActionBlock();
             actionBlock.AddAction(EditorAction.TEST_DELETED, o1);
+            FinishAction();
         }
 
         public void OnTestFormed(string testId)
@@ -536,10 +607,12 @@ namespace AssistantProcessor.Models
             return new IdsRowMemento(rowsIdsOrdered, testIdsOrdered);
         }
 
-        public void RestoreState(ObjectMemento objectMemento)
+        public ObjectMemento RestoreState(ObjectMemento objectMemento)
         {
+            ObjectMemento objectMemento2 = new IdsRowMemento(rowsIdsOrdered, testIdsOrdered);
             rowsIdsOrdered = ((IdsRowMemento) objectMemento).IdsRList;
             testIdsOrdered = ((IdsRowMemento) objectMemento).IdsTList;
+            return objectMemento2;
         }
         #endregion
     }

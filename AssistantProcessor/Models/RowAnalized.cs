@@ -207,11 +207,12 @@ namespace AssistantProcessor.Models
 
         public ObjectMemento SaveState()
         {
-            return new RowMemento(rowType, nativeNumbers, includedToAnalysis, hiddenContent, visibleEditedContent, testId);
+            return new RowMemento(rowType, nativeNumbers, includedToAnalysis, hiddenContent, visibleEditedContent, testId, rowId);
         }
 
-        public void RestoreState(ObjectMemento objectMemento)
+        public ObjectMemento RestoreState(ObjectMemento objectMemento)
         {
+            ObjectMemento objectMemento2 = new RowMemento(rowType, nativeNumbers, includedToAnalysis, hiddenContent, visibleEditedContent, testId, rowId);
             RowMemento rowMemento = (RowMemento) objectMemento;
             rowType = rowMemento.RowType;
             nativeNumbers = rowMemento.NativeNumbers;
@@ -219,6 +220,7 @@ namespace AssistantProcessor.Models
             hiddenContent = rowMemento.HiddenContent;
             visibleEditedContent = rowMemento.VisibleEditedContent;
             testId = rowMemento.TestId;
+            return objectMemento2;
         }
     }
 }

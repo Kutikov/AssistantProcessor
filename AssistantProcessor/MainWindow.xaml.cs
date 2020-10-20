@@ -23,5 +23,15 @@ namespace AssistantProcessor
         {
             coreFile.Export();
         }
+
+        private void UndoButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            coreFile.Undo();
+        }
+
+        private void RedoButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            coreFile.Redo();
+        }
     }
 }
