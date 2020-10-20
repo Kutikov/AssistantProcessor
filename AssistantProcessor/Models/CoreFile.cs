@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using AssistantProcessor.Enums;
 using AssistantProcessor.Interfaces;
 using AssistantProcessor.UI;
+using Microsoft.VisualBasic.FileIO;
 using Newtonsoft.Json;
+
 #pragma warning disable 8604
 
 namespace AssistantProcessor.Models
@@ -177,6 +181,28 @@ namespace AssistantProcessor.Models
                 return true;
             }
             return false;
+        }
+        #endregion
+
+        #region Export
+
+        public void Export()
+        {
+            string exportString = "";
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            foreach (var testAnalized in AnalyseBlocks)
+            {
+                exportString += testAnalized.GetEncodedTest(ParseType, this);
+            }
+            if (ParseType == ParseType.LINEAR)
+            {
+                Encoding win1251 = Encoding.GetEncoding("windows-1251");
+                Encoding utf8 = Encoding.UTF8;
+                byte[] utf8Bytes = utf8.GetBytes(exportString);
+                byte[] win1251Bytes = Encoding.Convert(utf8, win1251, utf8Bytes);
+                exportString = win1251.GetString(win1251Bytes);
+            }
+            File.WriteAllText(Path.Combine(SpecialDirectories.Desktop, "main.qst"), exportString, System.Text.Encoding.GetEncoding(1251));
         }
         #endregion
 

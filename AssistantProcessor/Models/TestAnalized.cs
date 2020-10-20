@@ -35,6 +35,59 @@ namespace AssistantProcessor.Models
             return ids.Count(id => coreFile.Rows.Find(x => x.rowId == id).includedToAnalysis);
         }
 
+        public string GetEncodedTest(ParseType parseType, CoreFile coreFile)
+        {
+            switch (parseType)
+            {
+                case ParseType.LINEAR:
+                    if (formed)
+                    {
+                        string test = "?\n";
+                        foreach (string task1 in task)
+                        {
+                            RowAnalized rowAnalized = coreFile.Rows.Find(x => x.rowId == task1)!;
+                            if (rowAnalized.includedToAnalysis)
+                            {
+                                test += rowAnalized.visibleEditedContent + " ";
+                            }
+                        }
+                        foreach (string true1 in correctAnswers)
+                        {
+                            RowAnalized rowAnalized = coreFile.Rows.Find(x => x.rowId == true1)!;
+                            if (rowAnalized.includedToAnalysis)
+                            {
+                                test += "\n+" + rowAnalized.visibleEditedContent;
+                            }
+                        }
+                        foreach (string false1 in wrongAnswers)
+                        {
+                            RowAnalized rowAnalized = coreFile.Rows.Find(x => x.rowId == false1)!;
+                            if (rowAnalized.includedToAnalysis)
+                            {
+                                test += "\n-" + rowAnalized.visibleEditedContent;
+                            }
+                        }
+                        if (CountVisible(comments, coreFile) > 0)
+                        {
+                            test += "\n!\n";
+                            foreach (string comment1 in comments)
+                            {
+                                RowAnalized rowAnalized = coreFile.Rows.Find(x => x.rowId == comment1)!;
+                                if (rowAnalized.includedToAnalysis)
+                                {
+                                    test += rowAnalized.visibleEditedContent + " ";
+                                }
+                            }
+                        }
+                        return test + "\n";
+                    }
+                    break;
+                case ParseType.PREMIUM:
+                    break;
+            }
+            return "";
+        }
+
         public List<string> OrderedConnectedIds(List<string> orderedRowIds)
         {
             List<string> ret = new List<string>();
