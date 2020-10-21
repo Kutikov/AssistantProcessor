@@ -1,6 +1,8 @@
-﻿using System.Windows;
+﻿using System.IO;
+using System.Windows;
 using AssistantProcessor.Enums;
 using AssistantProcessor.Models;
+using Microsoft.VisualBasic.FileIO;
 
 namespace AssistantProcessor
 {
@@ -32,6 +34,18 @@ namespace AssistantProcessor
         private void RedoButton_OnClick(object sender, RoutedEventArgs e)
         {
             coreFile.Redo();
+        }
+
+        private void SaveButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            string savng = coreFile.Encode();
+            File.WriteAllText(Path.Combine(SpecialDirectories.Desktop, "sv.json"), savng);
+        }
+
+        private void OpenButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            string json = File.ReadAllText(Path.Combine(SpecialDirectories.Desktop, "sv.json"));
+            coreFile = CoreFile.Decode(json);
         }
     }
 }

@@ -20,6 +20,8 @@
             <Button x:Name="ExportButton" Click="ExportButton_OnClick" VerticalAlignment="Center" Padding="6,2" Margin="8,0" Content="Export"/>
             <Button x:Name="UndoButton" Click="UndoButton_OnClick"  VerticalAlignment="Center" Padding="6,2" Margin="8,0" Content="Undo"/>
             <Button x:Name="RedoButton" Click="RedoButton_OnClick"  VerticalAlignment="Center" Padding="6,2" Margin="8,0" Content="Redo"/>
+            <Button x:Name="SaveButton" Click="SaveButton_OnClick"  VerticalAlignment="Center" Padding="6,2" Margin="8,0" Content="Save"/>
+            <Button x:Name="OpenButton" Click="OpenButton_OnClick"  VerticalAlignment="Center" Padding="6,2" Margin="8,0" Content="Open"/>
         </StackPanel>
         <Grid x:Name="EditorHolder" Grid.Column="0" Grid.Row="1"></Grid>
         <GridSplitter Grid.Row="1" Grid.Column="1" VerticalAlignment="Stretch" HorizontalAlignment="Center" Width="3" Background="#111"></GridSplitter>

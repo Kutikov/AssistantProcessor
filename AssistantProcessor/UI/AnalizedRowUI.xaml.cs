@@ -32,15 +32,19 @@ namespace AssistantProcessor.UI
             {
                 case RowType.WRONG_ANSWER:
                     WrongRadio.IsChecked = true;
+                    VisibleEditingTextBox.Background = new SolidColorBrush((Color) ColorConverter.ConvertFromString("#665f2222"));
                     break;
                 case RowType.CORRECT_ANSWER:
                     CorrectRadio.IsChecked = true;
+                    VisibleEditingTextBox.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#66003300"));
                     break;
                 case RowType.TASK:
                     TaskRadio.IsChecked = true;
+                    VisibleEditingTextBox.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#66263238"));
                     break;
                 case RowType.COMMENT:
                     CommentRadio.IsChecked = true;
+                    VisibleEditingTextBox.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#66543e00"));
                     break;
             }
             HiddenText.Text = rowAnalized.hiddenContent;
