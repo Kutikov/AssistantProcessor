@@ -300,6 +300,21 @@ namespace AssistantProcessor.Models
             rowsIdsOrdered.Add(rowAnalized.rowId);
         }
 
+        public void OnRowCreated(TestAnalized testAnalized)
+        {
+            RowAnalized comment = new RowAnalized(testAnalized);
+            ObjectMemento o1 = SaveState();
+            ObjectMemento o2 = testAnalized.SaveState();
+            Rows.Add(comment);
+            int index = rowsIdsOrdered.IndexOf(testAnalized.OrderedConnectedIds(rowsIdsOrdered)[^1]);
+            rowsIdsOrdered.Insert(index + 1, comment.rowId);
+            testAnalized.ConnectToRow(comment);
+            actionBlock = new ActionBlock();
+            actionBlock.AddAction(EditorAction.ROW_CREATED, o1);
+            actionBlock.AddAction(EditorAction.ROW_CREATED, o2);
+            FinishAction();
+        }
+
 
 #pragma warning disable CS8632 // Аннотацию для ссылочных типов, допускающих значения NULL, следует использовать в коде только в контексте аннотаций "#nullable".
         public void OnRowConcatenated(string? rowIdIdTop, string? rowIdBottom)

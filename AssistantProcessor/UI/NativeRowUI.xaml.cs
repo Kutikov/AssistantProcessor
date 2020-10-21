@@ -35,6 +35,11 @@ namespace AssistantProcessor.UI
 
         }
 
+        public void OnRowCreated(TestAnalized testAnalized)
+        {
+            
+        }
+
         private void UpdateColors()
         {
             Root.Background = rowNative.included ? new SolidColorBrush((Color) ColorConverter.ConvertFromString("#003300")) : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#5f2222"));

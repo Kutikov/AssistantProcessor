@@ -12,6 +12,7 @@ namespace AssistantProcessor.UI
     public partial class AnalizedRowUI : UserControl, IRowChangedObserver
     {
         public readonly RowAnalized rowAnalized;
+        private bool isMovableNext;
         private readonly AnalizedTestUI analizedTestUi;
         private readonly CoreFile coreFile;
         private readonly bool inited;
@@ -54,6 +55,11 @@ namespace AssistantProcessor.UI
             coreFile.IRowChangedObservers.Remove(this);
         }
 
+        public void EnableMoveButton()
+        {
+            PathNext.Fill = new SolidColorBrush(Color.FromRgb(255, 255, 255));
+            isMovableNext = true;
+        }
         private void Radio_OnChecked(object sender, RoutedEventArgs e)
         {
             RadioButton rb = ((RadioButton) sender);
@@ -87,9 +93,12 @@ namespace AssistantProcessor.UI
 
         private void ToNextButton_OnMouseUp(object sender, MouseButtonEventArgs e)
         {
-            foreach (var iRowChangedObserver in coreFile.IRowChangedObservers)
+            if (isMovableNext)
             {
-                iRowChangedObserver.OnRowMovedNext(rowAnalized.rowId);
+                foreach (var iRowChangedObserver in coreFile.IRowChangedObservers)
+                {
+                    iRowChangedObserver.OnRowMovedNext(rowAnalized.rowId);
+                }
             }
         }
 
@@ -161,6 +170,11 @@ namespace AssistantProcessor.UI
         }
 
         public void OnRowAdded(RowAnalized rowAnalized)
+        {
+            //test ui
+        }
+
+        public void OnRowCreated(TestAnalized testAnalized)
         {
             //test ui
         }

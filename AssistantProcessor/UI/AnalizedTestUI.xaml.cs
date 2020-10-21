@@ -59,7 +59,10 @@ namespace AssistantProcessor.UI
 
         private void AddComment_OnClick(object sender, RoutedEventArgs e)
         {
-            throw new NotImplementedException();
+            foreach (var iRowChangedObserver in coreFile.IRowChangedObservers)
+            {
+                iRowChangedObserver.OnRowCreated(testAnalized!);
+            }
         }
 
         private void ErrorWarning_OnMouseUp(object sender, MouseButtonEventArgs e)
@@ -129,6 +132,7 @@ namespace AssistantProcessor.UI
                     i++;
                 }
             }
+            analizedRowUis[^1].EnableMoveButton();
         }
 
         private void CheckTestValidaty()
@@ -192,6 +196,12 @@ namespace AssistantProcessor.UI
         }
 
         public void OnRowAdded(RowAnalized rowAnalized)
+        {
+            RowUIsRedraw();
+            CheckTestValidaty();
+        }
+
+        public void OnRowCreated(TestAnalized testAnalized)
         {
             RowUIsRedraw();
             CheckTestValidaty();

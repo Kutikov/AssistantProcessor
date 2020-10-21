@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using AssistantProcessor.Enums;
@@ -117,6 +118,18 @@ namespace AssistantProcessor.Models
                     }
                 }
             }
+        }
+
+        public RowAnalized(TestAnalized testAnalized)
+        {
+            content = "Comment";
+            nativeNumbers = new List<int>( );
+            rowId = "row" + testAnalized.testId + new Random().Next(1000);
+            includedToAnalysis = true;
+            hiddenContent = "";
+            visibleEditedContent = "Comment";
+            rowType = RowType.COMMENT;
+            testId = testAnalized.testId;
         }
 
         public RowAnalized(RowAnalized rowAnalized, int position, CoreFile coreFile)

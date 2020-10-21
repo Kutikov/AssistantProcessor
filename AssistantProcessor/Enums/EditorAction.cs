@@ -6,6 +6,7 @@
         TEST_DELETED,
         TEST_FORMED,
         ROW_CONCATENATED,
+        ROW_CREATED,
         ROW_DIVERSED,
         ROW_DELETED,
         ROW_MOVED_NEXT,
