@@ -146,12 +146,13 @@ namespace AssistantProcessor.UI
         public bool CheckWin1251()
         {
             VisibleEditingTextBox.Foreground = new SolidColorBrush(Color.FromRgb(255, 255, 255));
-            Encoding win1251 = Portable.Text.Encoding.GetEncoding("windows-1251");
-            Encoding utf8 = Portable.Text.Encoding.UTF8;
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            Encoding win1251 = Encoding.GetEncoding(1251);
+            Encoding utf8 = Encoding.UTF8;
             byte[] utf8Bytes = utf8.GetBytes(rowAnalized.visibleEditedContent);
             byte[] win1251Bytes = Encoding.Convert(utf8, win1251, utf8Bytes);
             string str = win1251.GetString(win1251Bytes);
-            if (str.Length != rowAnalized.visibleEditedContent.Length)
+            if (str != rowAnalized.visibleEditedContent)
             {
                 VisibleEditingTextBox.Foreground = new SolidColorBrush(Color.FromRgb(255, 50, 50));
                 return false;

@@ -136,7 +136,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Margin="4" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10" Foreground="#ddd">Пердупреждения<LineBreak/>Щелкните на иконку</TextBlock>
+            <TextBlock Margin="4" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10" Foreground="#ddd">Предупреждения<LineBreak/>Щелкните на иконку</TextBlock>
             <StackPanel Orientation="Horizontal" Grid.Column="1">
                 <Viewbox x:Name="EncodingError" MouseLeftButtonUp="ErrorWarning_OnMouseUp" Width="24" Height="24" Margin="4">
                     <Canvas Width="24" Height="24">
@@ -161,6 +161,11 @@
                 <Viewbox x:Name="MultipleCorrectAnswers" MouseLeftButtonUp="ErrorWarning_OnMouseUp" Width="24" Height="24" Margin="4">
                     <Canvas Width="24" Height="24">
                         <Path Fill="#ffd740" Data="M20,16V10H22V16A2,2 0 0,1 20,18H8C6.89,18 6,17.1 6,16V4C6,2.89 6.89,2 8,2H16V4H8V16H20M10.91,7.08L14,10.17L20.59,3.58L22,5L14,13L9.5,8.5L10.91,7.08M16,20V22H4A2,2 0 0,1 2,20V7H4V20H16Z" />
+                    </Canvas>
+                </Viewbox>
+                <Viewbox x:Name="FivePlusAnswers" MouseLeftButtonUp="ErrorWarning_OnMouseUp" Width="24" Height="24" Margin="4">
+                    <Canvas Width="24" Height="24">
+                        <Path Fill="#ffd740" Data="M17,13V11C17,9.89 16.1,9 15,9H13V7H17V5H11V11H15V13H11V15H15A2,2 0 0,0 17,13M3,5H1V21A2,2 0 0,0 3,23H19V21H3M21,17H7V3H21M21,1H7A2,2 0 0,0 5,3V17A2,2 0 0,0 7,19H21A2,2 0 0,0 23,17V3A2,2 0 0,0 21,1Z" />
                     </Canvas>
                 </Viewbox>
             </StackPanel>
@@ -189,6 +194,7 @@
                     <TextBlock x:Name="NoCorrectAnswersText" Foreground="#fff" FontSize="12" Margin="8,0,8,8" VerticalAlignment="Top" TextWrapping="Wrap" HorizontalAlignment="Stretch">Тест не содержит правильных ответов! Проверьте все еще раз</TextBlock>
                     <TextBlock x:Name="NoCommentsText" Foreground="#fff" FontSize="12" Margin="8,0,8,8" VerticalAlignment="Top" TextWrapping="Wrap" HorizontalAlignment="Stretch">Тест не содержит пояснений, они не обязательны, но были бы удобны</TextBlock>
                     <TextBlock x:Name="MultipleAnswersText" Foreground="#fff" FontSize="12" Margin="8,0,8,8" VerticalAlignment="Top" TextWrapping="Wrap" HorizontalAlignment="Stretch">Тест содержит несколько верных ответов? Если нет, то уберите разделение строки. Весь текст ответа должен быть в одну строку!</TextBlock>
+                    <TextBlock x:Name="FivePlusAnswersText" Foreground="#fff" FontSize="12" Margin="8,0,8,8" VerticalAlignment="Top" TextWrapping="Wrap" HorizontalAlignment="Stretch">Тест содержит более 5 ответов? Если нет, то уберите разделение строки. Весь текст ответа должен быть в одну строку!</TextBlock>
                     <TextBlock x:Name="CloseButton" Foreground="#fff" MouseUp="CloseButton_OnMouseUp" FontSize="18" Margin="8,0,16,8" VerticalAlignment="Top" TextWrapping="Wrap" HorizontalAlignment="Right">ЗАКРЫТЬ</TextBlock>
                 </StackPanel>
             </Border>

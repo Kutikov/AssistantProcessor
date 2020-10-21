@@ -53,7 +53,7 @@ namespace AssistantProcessor.UI
         {
             foreach (var iRowChangedObserver in coreFile.IRowChangedObservers)
             {
-                iRowChangedObserver.OnRowMovedPrev(testAnalized.testId);
+                iRowChangedObserver.OnRowMovedPrev(testAnalized!.testId);
             }
         }
 
@@ -71,6 +71,7 @@ namespace AssistantProcessor.UI
             NoTaskText.Visibility = Visibility.Collapsed;
             MultipleAnswersText.Visibility = Visibility.Collapsed;
             NoCommentsText.Visibility = Visibility.Collapsed;
+            FivePlusAnswersText.Visibility = Visibility.Collapsed;
             switch (((Viewbox) sender).Name)
             {
                 case "EncodingError":
@@ -93,6 +94,10 @@ namespace AssistantProcessor.UI
                     WarningCaption.Visibility = Visibility.Visible;
                     NoCommentsText.Visibility = Visibility.Visible;
                     break;
+                case "FivePlusAnswers":
+                    WarningCaption.Visibility = Visibility.Visible;
+                    FivePlusAnswersText.Visibility = Visibility.Visible;
+                    break;
             }
 
             Dialog.Visibility = Visibility.Visible;
@@ -111,7 +116,7 @@ namespace AssistantProcessor.UI
                 analizedRowUis.Remove(rowUi);
             }
 
-            List<string> ids = testAnalized.OrderedConnectedIds(coreFile.rowsIdsOrdered);
+            List<string> ids = testAnalized!.OrderedConnectedIds(coreFile.rowsIdsOrdered);
             int i = 0;
             foreach (var id in ids)
             {
@@ -129,7 +134,7 @@ namespace AssistantProcessor.UI
         private void CheckTestValidaty()
         {
             bool enableFormButton = true;
-            switch (testAnalized.CountVisible(testAnalized.correctAnswers, coreFile))
+            switch (testAnalized!.CountVisible(testAnalized.correctAnswers, coreFile))
             {
                 case 0:
                     enableFormButton = false;
@@ -145,7 +150,6 @@ namespace AssistantProcessor.UI
                     MultipleCorrectAnswers.Visibility = Visibility.Visible;
                     break;
             }
-
             if (!CheckWin1251())
             {
                 enableFormButton = false;
@@ -159,6 +163,11 @@ namespace AssistantProcessor.UI
             {
                 NoTask.Visibility = Visibility.Collapsed;
             }
+            FivePlusAnswers.Visibility =
+                testAnalized.CountVisible(testAnalized.wrongAnswers, coreFile) +
+                testAnalized.CountVisible(testAnalized.correctAnswers, coreFile) > 5
+                    ? Visibility.Visible
+                    : Visibility.Hidden;
             NoComments.Visibility = testAnalized.CountVisible(testAnalized.comments, coreFile) == 0 ? Visibility.Visible : Visibility.Hidden;
             FormTest.IsEnabled = enableFormButton;
         }
@@ -253,7 +262,7 @@ namespace AssistantProcessor.UI
         {
             foreach (var iTestChangedObserver in coreFile.ITestChangedObservers)
             {
-                iTestChangedObserver.OnTestFormed(testAnalized.testId);
+                iTestChangedObserver.OnTestFormed(testAnalized!.testId);
             }
         }
 
