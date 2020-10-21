@@ -11,7 +11,7 @@ namespace AssistantProcessor.UI
     /// </summary>
     public partial class NativeRowUI : UserControl, IRowChangedObserver
     {
-        private readonly RowNative rowNative;
+        public readonly RowNative rowNative;
         private readonly CoreFile coreFile;
 
         public NativeRowUI(RowNative rowNative, CoreFile coreFile)
@@ -40,7 +40,7 @@ namespace AssistantProcessor.UI
             
         }
 
-        private void UpdateColors()
+        public void UpdateColors()
         {
             Root.Background = rowNative.included ? new SolidColorBrush((Color) ColorConverter.ConvertFromString("#003300")) : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#5f2222"));
         }

@@ -32,7 +32,7 @@ namespace AssistantProcessor.Models
 
         public int CountVisible(List<string> ids, CoreFile coreFile)
         {
-            return ids.Count(id => coreFile.Rows.Find(x => x.rowId == id)!.includedToAnalysis);
+            return ids.Count(id => coreFile.analizedRowsList.Find(x => x.rowId == id)!.includedToAnalysis);
         }
 
         public string GetEncodedTest(ParseType parseType, CoreFile coreFile)
@@ -45,7 +45,7 @@ namespace AssistantProcessor.Models
                         string test = "?\n";
                         foreach (string task1 in task)
                         {
-                            RowAnalized rowAnalized = coreFile.Rows.Find(x => x.rowId == task1)!;
+                            RowAnalized rowAnalized = coreFile.analizedRowsList.Find(x => x.rowId == task1)!;
                             if (rowAnalized.includedToAnalysis)
                             {
                                 test += rowAnalized.visibleEditedContent + " ";
@@ -53,7 +53,7 @@ namespace AssistantProcessor.Models
                         }
                         foreach (string true1 in correctAnswers)
                         {
-                            RowAnalized rowAnalized = coreFile.Rows.Find(x => x.rowId == true1)!;
+                            RowAnalized rowAnalized = coreFile.analizedRowsList.Find(x => x.rowId == true1)!;
                             if (rowAnalized.includedToAnalysis)
                             {
                                 test += "\n+" + rowAnalized.visibleEditedContent;
@@ -61,7 +61,7 @@ namespace AssistantProcessor.Models
                         }
                         foreach (string false1 in wrongAnswers)
                         {
-                            RowAnalized rowAnalized = coreFile.Rows.Find(x => x.rowId == false1)!;
+                            RowAnalized rowAnalized = coreFile.analizedRowsList.Find(x => x.rowId == false1)!;
                             if (rowAnalized.includedToAnalysis)
                             {
                                 test += "\n-" + rowAnalized.visibleEditedContent;
@@ -72,7 +72,7 @@ namespace AssistantProcessor.Models
                             test += "\n!\n";
                             foreach (string comment1 in comments)
                             {
-                                RowAnalized rowAnalized = coreFile.Rows.Find(x => x.rowId == comment1)!;
+                                RowAnalized rowAnalized = coreFile.analizedRowsList.Find(x => x.rowId == comment1)!;
                                 if (rowAnalized.includedToAnalysis)
                                 {
                                     test += rowAnalized.visibleEditedContent + " ";
@@ -88,7 +88,7 @@ namespace AssistantProcessor.Models
                         string test = "::" + number + "::\n";
                         foreach (string task1 in task)
                         {
-                            RowAnalized rowAnalized = coreFile.Rows.Find(x => x.rowId == task1)!;
+                            RowAnalized rowAnalized = coreFile.analizedRowsList.Find(x => x.rowId == task1)!;
                             if (rowAnalized.includedToAnalysis)
                             {
                                 test += rowAnalized.visibleEditedContent + " ";
@@ -97,7 +97,7 @@ namespace AssistantProcessor.Models
                         test += "\n{";
                         foreach (string true1 in correctAnswers)
                         {
-                            RowAnalized rowAnalized = coreFile.Rows.Find(x => x.rowId == true1)!;
+                            RowAnalized rowAnalized = coreFile.analizedRowsList.Find(x => x.rowId == true1)!;
                             if (rowAnalized.includedToAnalysis)
                             {
                                 test += "\n=" + rowAnalized.visibleEditedContent;
@@ -105,7 +105,7 @@ namespace AssistantProcessor.Models
                         }
                         foreach (string false1 in wrongAnswers)
                         {
-                            RowAnalized rowAnalized = coreFile.Rows.Find(x => x.rowId == false1)!;
+                            RowAnalized rowAnalized = coreFile.analizedRowsList.Find(x => x.rowId == false1)!;
                             if (rowAnalized.includedToAnalysis)
                             {
                                 test += "\n~" + rowAnalized.visibleEditedContent;
@@ -116,7 +116,7 @@ namespace AssistantProcessor.Models
                             test += "\n#\n";
                             foreach (string comment1 in comments)
                             {
-                                RowAnalized rowAnalized = coreFile.Rows.Find(x => x.rowId == comment1)!;
+                                RowAnalized rowAnalized = coreFile.analizedRowsList.Find(x => x.rowId == comment1)!;
                                 if (rowAnalized.includedToAnalysis)
                                 {
                                     test += rowAnalized.visibleEditedContent + " ";

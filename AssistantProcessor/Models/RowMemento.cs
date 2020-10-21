@@ -28,7 +28,7 @@ namespace AssistantProcessor.Models
 
         public ObjectMemento FindAndRestore(CoreFile coreFile)
         {
-            RowAnalized? rowAnalized = coreFile.Rows.Find(x => x.rowId == rowId);
+            RowAnalized? rowAnalized = coreFile.analizedRowsList.Find(x => x.rowId == rowId);
             return rowAnalized?.RestoreState(this)!;
         }
     }

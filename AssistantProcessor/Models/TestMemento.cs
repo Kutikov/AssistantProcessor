@@ -31,7 +31,7 @@ namespace AssistantProcessor.Models
 
         public ObjectMemento FindAndRestore(CoreFile coreFile)
         {
-            TestAnalized? testAnalized = coreFile.AnalyseBlocks.Find(x => x.testId == testId);
+            TestAnalized? testAnalized = coreFile.analizedTestsList.Find(x => x.testId == testId);
             return testAnalized?.RestoreState(this)!;
         }
     }

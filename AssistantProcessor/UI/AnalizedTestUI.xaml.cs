@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -123,7 +122,7 @@ namespace AssistantProcessor.UI
             int i = 0;
             foreach (var id in ids)
             {
-                RowAnalized rowAnalized = coreFile.Rows.First(x => x.rowId == id);
+                RowAnalized rowAnalized = coreFile.analizedRowsList.First(x => x.rowId == id);
                 if (rowAnalized.includedToAnalysis)
                 {
                     AnalizedRowUI analizedRowUi = new AnalizedRowUI(rowAnalized, coreFile, i, this);

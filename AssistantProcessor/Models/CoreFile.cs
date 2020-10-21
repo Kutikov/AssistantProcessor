@@ -20,10 +20,10 @@ namespace AssistantProcessor.Models
         public string? fileSource;
         public string? content;
         public FilterPatterns? filterPatterns;
-        public List<RowNative> rowNatives;
+        public List<RowNative> rowNativesList;
         public ParseType ParseType;
-        public List<RowAnalized> Rows;
-        public List<TestAnalized> AnalyseBlocks;
+        public List<RowAnalized> analizedRowsList;
+        public List<TestAnalized> analizedTestsList;
         public List<string> rowsIdsOrdered;
         public List<string> testIdsOrdered;
         private ActionBlock? actionBlock;
@@ -36,6 +36,7 @@ namespace AssistantProcessor.Models
         [JsonIgnore] public TestAnalized? tempTest;
         [JsonIgnore] public MainWindow mainWindow;
         [JsonIgnore] private AnalizedTestUI? analizedTestUi;
+        [JsonIgnore] private List<NativeRowUI> nativeRowUis;
 
         #nullable enable
 
@@ -52,13 +53,14 @@ namespace AssistantProcessor.Models
             }
             rowsIdsOrdered = new List<string>();
             testIdsOrdered = new List<string>();
-            rowNatives = new List<RowNative>();
+            rowNativesList = new List<RowNative>();
             ITestChangedObservers = new List<ITestChangedObserver> {this};
             IRowChangedObservers = new IRowChangedIterator {this};
             actionsActionBlocksNext = new Stack<ActionBlock>();
             actionsActionBlocksPrev = new Stack<ActionBlock>();
-            AnalyseBlocks = new List<TestAnalized>();
-            Rows = new List<RowAnalized>();
+            nativeRowUis = new List<NativeRowUI>();
+            analizedTestsList = new List<TestAnalized>();
+            analizedRowsList = new List<RowAnalized>();
             ParseType = ParseType.LINEAR;
         }
 
@@ -87,12 +89,13 @@ namespace AssistantProcessor.Models
             string[] enteries = text.Replace("\r", "").Split(new[] {"\n"}, StringSplitOptions.None);
             for (int i = 0; i < enteries.Length; i++)
             {
-                rowNatives.Add(new RowNative(enteries[i], i));
+                rowNativesList.Add(new RowNative(enteries[i], i));
             }
             //try
-            foreach(var n in rowNatives)
+            foreach(var n in rowNativesList)
             {
                 NativeRowUI nativeRowUi = new NativeRowUI(n, this);
+                nativeRowUis.Add(nativeRowUi);
                 mainWindow.NativePanel.Children.Add(nativeRowUi);
             }
         }
@@ -102,7 +105,7 @@ namespace AssistantProcessor.Models
             this.filterPatterns = filterPatterns;
             this.ParseType = ParseType;
             tempTest = new TestAnalized(0, "test" + 0);
-            foreach (var rowNative in rowNatives)
+            foreach (var rowNative in rowNativesList)
             {
                 if (rowNative.included)
                 {
@@ -116,7 +119,7 @@ namespace AssistantProcessor.Models
             OnNextTestDetected();
             analizedTestUi = new AnalizedTestUI(this);
             mainWindow.EditorHolder.Children.Add(analizedTestUi);
-            analizedTestUi.ReInit(AnalyseBlocks.Find(X => X.testId == testIdsOrdered[0]));
+            analizedTestUi.ReInit(analizedTestsList.Find(X => X.testId == testIdsOrdered[0]));
         }
 
         public TestAnalized? GetNextNonFormedTestAnalized(string testId)
@@ -126,11 +129,11 @@ namespace AssistantProcessor.Models
                 int index = testIdsOrdered.FindIndex(x => x == testId);
                 if (index < testIdsOrdered.Count - 1)
                 {
-                    while (AnalyseBlocks.Find(x => x.testId == testIdsOrdered[index + 1]).formed && index < testIdsOrdered.Count - 1)
+                    while (analizedTestsList.Find(x => x.testId == testIdsOrdered[index + 1])!.formed && index < testIdsOrdered.Count - 1)
                     {
                         index++;
                     }
-                    return AnalyseBlocks.Find(x => x.testId == testIdsOrdered[index + 1]);
+                    return analizedTestsList.Find(x => x.testId == testIdsOrdered[index + 1]);
                 }
                 return null;
             }
@@ -218,10 +221,22 @@ namespace AssistantProcessor.Models
                 if (result.EditorActions.Contains(EditorAction.TEST_FORMED))
                 {
                     string prevTestId = testIdsOrdered[testIdsOrdered.IndexOf(analizedTestUi?.GetTestAnalized().testId) - 1];
-                    analizedTestUi?.ReInit(AnalyseBlocks.Find(x => x.testId == prevTestId)!);
+                    analizedTestUi?.ReInit(analizedTestsList.Find(x => x.testId == prevTestId)!);
                 }
                 else
                 {
+                    for (int i = 0; i < result.EditorActions.Count; i++)
+                    {
+                        if (result.EditorActions[i] == EditorAction.ROW_DELETED && result.Mementoes[i].GetType() == typeof(RowMemento))
+                        {
+                            RowMemento rowMemento = (RowMemento) result.Mementoes[i];
+                            foreach (var nativeNumber in rowMemento.NativeNumbers)
+                            {
+                                rowNativesList.Find(x => x.rowNumber == nativeNumber).included = true;
+                                nativeRowUis.Find(x => x.rowNative.rowNumber == nativeNumber).UpdateColors();
+                            }
+                        }
+                    }
                     analizedTestUi?.Undo();
                 }
                 actionsActionBlocksNext.Push(response.Clone());
@@ -239,10 +254,22 @@ namespace AssistantProcessor.Models
                 if (result.EditorActions.Contains(EditorAction.TEST_FORMED))
                 {
                     string prevTestId = testIdsOrdered[testIdsOrdered.IndexOf(analizedTestUi?.GetTestAnalized().testId) + 1];
-                    analizedTestUi?.ReInit(AnalyseBlocks.Find(x => x.testId == prevTestId)!);
+                    analizedTestUi?.ReInit(analizedTestsList.Find(x => x.testId == prevTestId)!);
                 }
                 else
                 {
+                    for (int i = 0; i < result.EditorActions.Count; i++)
+                    {
+                        if (result.EditorActions[i] == EditorAction.ROW_DELETED && result.Mementoes[i].GetType() == typeof(RowMemento))
+                        {
+                            RowMemento rowMemento = (RowMemento)result.Mementoes[i];
+                            foreach (var nativeNumber in rowMemento.NativeNumbers)
+                            {
+                                rowNativesList.Find(x => x.rowNumber == nativeNumber).included = false;
+                                nativeRowUis.Find(x => x.rowNative.rowNumber == nativeNumber).UpdateColors();
+                            }
+                        }
+                    }
                     analizedTestUi?.Undo();
                 }
                 return true;
@@ -261,7 +288,7 @@ namespace AssistantProcessor.Models
                 exportString = "<GIFT>\n";
             }
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            foreach (var testAnalized in AnalyseBlocks)
+            foreach (var testAnalized in analizedTestsList)
             {
                 exportString += testAnalized.GetEncodedTest(ParseType, this);
             }
@@ -296,7 +323,7 @@ namespace AssistantProcessor.Models
 
         public void OnRowAdded(RowAnalized rowAnalized)
         {
-            Rows.Add(rowAnalized);
+            analizedRowsList.Add(rowAnalized);
             rowsIdsOrdered.Add(rowAnalized.rowId);
         }
 
@@ -305,7 +332,7 @@ namespace AssistantProcessor.Models
             RowAnalized comment = new RowAnalized(testAnalized);
             ObjectMemento o1 = SaveState();
             ObjectMemento o2 = testAnalized.SaveState();
-            Rows.Add(comment);
+            analizedRowsList.Add(comment);
             int index = rowsIdsOrdered.IndexOf(testAnalized.OrderedConnectedIds(rowsIdsOrdered)[^1]);
             rowsIdsOrdered.Insert(index + 1, comment.rowId);
             testAnalized.ConnectToRow(comment);
@@ -324,9 +351,9 @@ namespace AssistantProcessor.Models
             int nextRow;
             if (rowIdIdTop != null)
             {
-                rowAnalized = Rows.Find(x => x.rowId == rowIdIdTop);
+                rowAnalized = analizedRowsList.Find(x => x.rowId == rowIdIdTop);
                 nextRow = rowsIdsOrdered.IndexOf(rowIdIdTop) + 1;
-                while (!Rows.Find(x => x.rowId == rowsIdsOrdered[nextRow]).includedToAnalysis)
+                while (!analizedRowsList.Find(x => x.rowId == rowsIdsOrdered[nextRow]).includedToAnalysis)
                 {
                     nextRow++;
                     if (nextRow == rowsIdsOrdered.Count)
@@ -337,9 +364,9 @@ namespace AssistantProcessor.Models
             }
             else
             {
-                rowAnalized = Rows.Find(x => x.rowId == rowIdBottom);
+                rowAnalized = analizedRowsList.Find(x => x.rowId == rowIdBottom);
                 nextRow = rowsIdsOrdered.IndexOf(rowIdBottom) - 1;
-                while (!Rows.Find(x => x.rowId == rowsIdsOrdered[nextRow]).includedToAnalysis)
+                while (!analizedRowsList.Find(x => x.rowId == rowsIdsOrdered[nextRow]).includedToAnalysis)
                 {
                     nextRow--;
                     if (nextRow < 0)
@@ -350,13 +377,13 @@ namespace AssistantProcessor.Models
             }
             if (nextRow < rowsIdsOrdered.Count)
             {
-                RowAnalized rowNext = Rows.Find(x => x.rowId == rowsIdsOrdered[nextRow]);
+                RowAnalized rowNext = analizedRowsList.Find(x => x.rowId == rowsIdsOrdered[nextRow]);
                 if (rowAnalized != null)
                 {
                     if (rowNext != null)
                     { 
-                        TestAnalized testAnalized = AnalyseBlocks.Find(x => x.testId == rowAnalized.testId);
-                        TestAnalized testAnalized2 = AnalyseBlocks.Find(x => x.testId == rowNext.testId);
+                        TestAnalized testAnalized = analizedTestsList.Find(x => x.testId == rowAnalized.testId);
+                        TestAnalized testAnalized2 = analizedTestsList.Find(x => x.testId == rowNext.testId);
                         if (testAnalized != null)
                         {
                             ObjectMemento o2 = rowNext.SaveState();
@@ -376,7 +403,7 @@ namespace AssistantProcessor.Models
                             rowNext.includedToAnalysis = false;
                             foreach (var t in rowNext.nativeNumbers)
                             {
-                                rowNatives.Find(x => x.rowNumber == t).included = true;
+                                rowNativesList.Find(x => x.rowNumber == t).included = true;
                             }
                             foreach (var iRowChangedObserver in IRowChangedObservers)
                             {
@@ -403,10 +430,10 @@ namespace AssistantProcessor.Models
 
         public void OnRowDiversed(string rowId, int position)
         {
-            RowAnalized rowAnalized = Rows.Find(x => x.rowId == rowId);
+            RowAnalized rowAnalized = analizedRowsList.Find(x => x.rowId == rowId);
             if (rowAnalized != null)
             {
-                TestAnalized testAnalized = AnalyseBlocks.Find(x => x.testId == rowAnalized.testId);
+                TestAnalized testAnalized = analizedTestsList.Find(x => x.testId == rowAnalized.testId);
                 if (testAnalized != null)
                 {
                     ObjectMemento o1 = rowAnalized.SaveState();
@@ -414,7 +441,7 @@ namespace AssistantProcessor.Models
                     ObjectMemento o3 = testAnalized.SaveState();
                     RowAnalized newRowAnalized = new RowAnalized(rowAnalized, position, this);
                     rowAnalized.visibleEditedContent = rowAnalized.visibleEditedContent.Substring(0, position);
-                    Rows.Add(newRowAnalized);
+                    analizedRowsList.Add(newRowAnalized);
                     testAnalized.ConnectToRow(newRowAnalized);
                     actionBlock = new ActionBlock();
                     actionBlock.AddAction(EditorAction.ROW_DIVERSED, o1);
@@ -427,7 +454,7 @@ namespace AssistantProcessor.Models
 
         public void OnRowDeleted(string rowId)
         {
-            RowAnalized rowAnalized = Rows.Find(x => x.rowId == rowId);
+            RowAnalized rowAnalized = analizedRowsList.Find(x => x.rowId == rowId);
             if (rowAnalized != null)
             {
                 ObjectMemento o1 = SaveState();
@@ -435,13 +462,13 @@ namespace AssistantProcessor.Models
                 rowAnalized.includedToAnalysis = false;
                 foreach (var t in rowAnalized.nativeNumbers)
                 {
-                    rowNatives.Find(x => x.rowNumber == t).included = false;
+                    rowNativesList.Find(x => x.rowNumber == t).included = false;
                 }
-                TestAnalized testAnalized = AnalyseBlocks.Find(x => x.testId == rowAnalized.testId);
+                TestAnalized testAnalized = analizedTestsList.Find(x => x.testId == rowAnalized.testId);
                 actionBlock = new ActionBlock();
                 if (testAnalized != null)
                 {
-                    if (!testAnalized.HasVisibleRows(Rows))
+                    if (!testAnalized.HasVisibleRows(analizedRowsList))
                     {
                         foreach (var iTestChangedObserver in ITestChangedObservers)
                         {
@@ -457,23 +484,23 @@ namespace AssistantProcessor.Models
 
         public void OnRowMovedNext(string rowId)
         {
-            RowAnalized rowAnalized = Rows.Find(x => x.rowId == rowId);
+            RowAnalized rowAnalized = analizedRowsList.Find(x => x.rowId == rowId);
             if (rowAnalized != null)
             {
                 ObjectMemento o1 = SaveState();
                 ObjectMemento o2 = rowAnalized.SaveState();
                 int nextTest = testIdsOrdered.IndexOf(rowAnalized.testId) + 1;
-                TestAnalized test = AnalyseBlocks.FirstOrDefault(x => x.testId == testIdsOrdered[nextTest - 1]);
+                TestAnalized test = analizedTestsList.FirstOrDefault(x => x.testId == testIdsOrdered[nextTest - 1]);
                 if (test != null)
                 {
                     ObjectMemento o3 = test.SaveState();
                     test.DisconnectRow(rowId);
                     actionBlock = new ActionBlock();
-                    TestAnalized testNext = AnalyseBlocks.FirstOrDefault(x => x.testId == testIdsOrdered[nextTest]);
+                    TestAnalized testNext = analizedTestsList.FirstOrDefault(x => x.testId == testIdsOrdered[nextTest]);
                     if (testNext == null)
                     {
                         testNext = new TestAnalized(testIdsOrdered.Count, "test" + testIdsOrdered.Count);
-                        AnalyseBlocks.Add(testNext);
+                        analizedTestsList.Add(testNext);
                         testIdsOrdered.Add(testNext.testId);
                     }
                     else
@@ -493,9 +520,9 @@ namespace AssistantProcessor.Models
 
         public void OnRowMovedPrev(string testId)
         {
-            TestAnalized thisTestAnalized = AnalyseBlocks.FirstOrDefault(x => x.testId == testId);
-            TestAnalized nextTestAnalized = AnalyseBlocks.FirstOrDefault(x => x.testId == testIdsOrdered[testIdsOrdered.FindIndex(y => y == testId) + 1]);
-            RowAnalized rowAnalized = Rows.Find(x => x.rowId == nextTestAnalized.OrderedConnectedIds(rowsIdsOrdered)[0]);
+            TestAnalized thisTestAnalized = analizedTestsList.FirstOrDefault(x => x.testId == testId);
+            TestAnalized nextTestAnalized = analizedTestsList.FirstOrDefault(x => x.testId == testIdsOrdered[testIdsOrdered.FindIndex(y => y == testId) + 1]);
+            RowAnalized rowAnalized = analizedRowsList.Find(x => x.rowId == nextTestAnalized.OrderedConnectedIds(rowsIdsOrdered)[0]);
             if (thisTestAnalized != null && nextTestAnalized != null && rowAnalized != null)
             {
                 ObjectMemento o1 = rowAnalized.SaveState();
@@ -505,7 +532,7 @@ namespace AssistantProcessor.Models
                 thisTestAnalized.ConnectToRow(rowAnalized);
                 rowAnalized.testId = testId;
                 actionBlock = new ActionBlock();
-                if (!nextTestAnalized.HasVisibleRows(Rows))
+                if (!nextTestAnalized.HasVisibleRows(analizedRowsList))
                 {
                     ObjectMemento o4 = SaveState();
                     foreach (var iTestChangedObserver in ITestChangedObservers)
@@ -523,13 +550,13 @@ namespace AssistantProcessor.Models
 
         public void OnRowTypeChanged(string rowId, RowType rowType)
         {
-            RowAnalized rowAnalized = Rows.Find(x => x.rowId == rowId);
+            RowAnalized rowAnalized = analizedRowsList.Find(x => x.rowId == rowId);
             if (rowAnalized != null)
             {
                 ObjectMemento o2 = rowAnalized.SaveState();
                 rowAnalized.rowType = rowType;
                 int thisTest = testIdsOrdered.IndexOf(rowAnalized.testId);
-                TestAnalized test = AnalyseBlocks.FirstOrDefault(x => x.testId == testIdsOrdered[thisTest]);
+                TestAnalized test = analizedTestsList.FirstOrDefault(x => x.testId == testIdsOrdered[thisTest]);
                 if (test != null)
                 {
                     ObjectMemento o3 = test.SaveState();
@@ -546,7 +573,7 @@ namespace AssistantProcessor.Models
         public void OnTestAdded(TestAnalized test)
         {
             ObjectMemento o1 = SaveState();
-            AnalyseBlocks.Add(test);
+            analizedTestsList.Add(test);
             testIdsOrdered.Add(test.testId);
             actionBlock = new ActionBlock();
             actionBlock.AddAction(EditorAction.TEST_ADDED, o1);
@@ -555,8 +582,8 @@ namespace AssistantProcessor.Models
 
         public void OnTestAdded(List<string> rowIds)
         {
-            RowAnalized rw = Rows.Find(x => x.rowId == rowIds[0]);
-            TestAnalized parentTestAnalized = AnalyseBlocks.Find(x => x.testId == rw.testId);
+            RowAnalized rw = analizedRowsList.Find(x => x.rowId == rowIds[0]);
+            TestAnalized parentTestAnalized = analizedTestsList.Find(x => x.testId == rw.testId);
             if (rw != null && parentTestAnalized != null)
             {
                 ObjectMemento o1 = SaveState();
@@ -568,7 +595,7 @@ namespace AssistantProcessor.Models
                 {
                     if (iTestChangedObserver.GetType() == GetType())
                     {
-                        AnalyseBlocks.Add(t);
+                        analizedTestsList.Add(t);
                         testIdsOrdered.Insert(index, t.testId);
                     }
                     else
@@ -579,7 +606,7 @@ namespace AssistantProcessor.Models
                 List<ObjectMemento> objectMementoes = new List<ObjectMemento> { o1, o2 };
                 foreach (var rowId in rowIds)
                 {
-                    RowAnalized rw0 = Rows.Find(x => x.rowId == rowId);
+                    RowAnalized rw0 = analizedRowsList.Find(x => x.rowId == rowId);
                     if (rw0 != null)
                     {
                         objectMementoes.Add(rw0.SaveState());
@@ -608,7 +635,7 @@ namespace AssistantProcessor.Models
 
         public void OnTestFormed(string testId)
         {
-            TestAnalized testAnalized = AnalyseBlocks.Find(x => x.testId == testId);
+            TestAnalized testAnalized = analizedTestsList.Find(x => x.testId == testId);
             if (testAnalized != null)
             {
                 actionBlock = new ActionBlock();
