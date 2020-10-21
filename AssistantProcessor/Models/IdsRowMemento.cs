@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace AssistantProcessor.Models
 {
@@ -7,10 +8,10 @@ namespace AssistantProcessor.Models
         public List<string> IdsRList { get; }
         public List<string> IdsTList { get; }
 
-        public IdsRowMemento(List<string> IdsRList, List<string> IdsTList)
+        public IdsRowMemento(IEnumerable<string> IdsRList, IEnumerable<string> IdsTList)
         {
-            this.IdsRList = IdsRList;
-            this.IdsTList = IdsTList;
+            this.IdsRList = IdsRList.ToList();
+            this.IdsTList = IdsTList.ToList();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace AssistantProcessor.Models
 {
@@ -15,15 +16,15 @@ namespace AssistantProcessor.Models
 
         private readonly string testId;
 
-        public TestMemento(List<string> Task, List<string> CorrectAnswers, List<string> WrongAnswers, List<string> Comments, List<string> Project, int Number, bool Formed, bool Included, string testId)
+        public TestMemento(IEnumerable<string> Task, IEnumerable<string> CorrectAnswers, IEnumerable<string> WrongAnswers, IEnumerable<string> Comments, IEnumerable<string> Project, int Number, bool Formed, bool Included, string testId)
         {
-            this.Comments = Comments;
-            this.CorrectAnswers = CorrectAnswers;
+            this.Comments = Comments.ToList();
+            this.CorrectAnswers = CorrectAnswers.ToList();
             this.Formed = Formed;
             this.Number = Number;
-            this.Project = Project;
-            this.WrongAnswers = WrongAnswers;
-            this.Task = Task;
+            this.Project = Project.ToList();
+            this.WrongAnswers = WrongAnswers.ToList();
+            this.Task = Task.ToList();
             this.Included = Included;
             this.testId = testId;
         }

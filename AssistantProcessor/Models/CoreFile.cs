@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,7 @@ using Newtonsoft.Json;
 
 namespace AssistantProcessor.Models
 {
+    [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
     public class CoreFile : IRowChangedObserver, ITestChangedObserver, IUndoRedoObject
     {
         public string? fileSource;
@@ -298,9 +300,10 @@ namespace AssistantProcessor.Models
             rowsIdsOrdered.Add(rowAnalized.rowId);
         }
 
-#pragma warning disable 8632
+
+#pragma warning disable CS8632 // Аннотацию для ссылочных типов, допускающих значения NULL, следует использовать в коде только в контексте аннотаций "#nullable".
         public void OnRowConcatenated(string? rowIdIdTop, string? rowIdBottom)
-#pragma warning restore 8632
+#pragma warning restore CS8632 // Аннотацию для ссылочных типов, допускающих значения NULL, следует использовать в коде только в контексте аннотаций "#nullable".
         {
             RowAnalized rowAnalized;
             int nextRow;
@@ -395,6 +398,7 @@ namespace AssistantProcessor.Models
                     ObjectMemento o2 = SaveState();
                     ObjectMemento o3 = testAnalized.SaveState();
                     RowAnalized newRowAnalized = new RowAnalized(rowAnalized, position, this);
+                    rowAnalized.visibleEditedContent = rowAnalized.visibleEditedContent.Substring(0, position);
                     Rows.Add(newRowAnalized);
                     testAnalized.ConnectToRow(newRowAnalized);
                     actionBlock = new ActionBlock();

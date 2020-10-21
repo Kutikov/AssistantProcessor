@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 using AssistantProcessor.Enums;
 using AssistantProcessor.Interfaces;
@@ -121,24 +122,23 @@ namespace AssistantProcessor.Models
         public RowAnalized(RowAnalized rowAnalized, int position, CoreFile coreFile)
         {
             List<string> alphabet = new List<string> {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" };
-            rowId = rowAnalized.rowId;
-            if (new Regex(@"$\d").IsMatch(rowId))
+            int z = 0;
+            string rowIdtemp = rowAnalized.rowId;
+            while (coreFile.rowsIdsOrdered.Contains(rowIdtemp + alphabet[z]))
             {
-                rowId += "a";
+                z++;
+            }
+            rowId = rowIdtemp + alphabet[z];
+            hiddenContent = "";
+            visibleEditedContent = "";
+            int index = coreFile.rowsIdsOrdered!.FindIndex(x => x == rowAnalized.rowId);
+            if (index < coreFile.rowsIdsOrdered!.Count - 1)
+            {
+                coreFile.rowsIdsOrdered!.Insert(index + 1, rowId);
             }
             else
             {
-                string b = rowId.Substring(rowId.Length - 2);
-                rowId = rowId.Replace(b, alphabet[alphabet.FindIndex(x => x == b) + 1]);
-            }
-            int index = coreFile.rowsIdsOrdered.FindIndex(x => x == rowAnalized.rowId);
-            if (index < coreFile.rowsIdsOrdered.Count - 1)
-            {
-                coreFile.rowsIdsOrdered.Insert(index + 1, rowId);
-            }
-            else
-            {
-                coreFile.rowsIdsOrdered.Add(rowId);
+                coreFile.rowsIdsOrdered!.Add(rowId);
             }
             content = rowAnalized.visibleEditedContent.Substring(position);
             includedToAnalysis = true;
@@ -150,36 +150,33 @@ namespace AssistantProcessor.Models
                 case RowType.COMMENT:
                     hiddenContent = "";
                     visibleEditedContent = content.Trim();
-                    testId = coreFile.tempTest.testId;
                     rowType = RowType.COMMENT;
                     break;
                 case RowType.CORRECT_ANSWER:
                 case RowType.WRONG_ANSWER:
                 case RowType.TASK:
                     int i = 0;
-                    while (!analized && i < coreFile.filterPatterns.correctAnswerRegexes.Count)
+                    while (!analized && i < coreFile.filterPatterns!.correctAnswerRegexes.Count)
                     {
-                        if (coreFile.filterPatterns.correctAnswerRegexes[i].IsMatch(content))
+                        if (coreFile.filterPatterns!.correctAnswerRegexes[i].IsMatch(content))
                         {
                             analized = true;
-                            MatchCollection match = coreFile.filterPatterns.correctAnswerRegexes[i].Matches(content);
+                            MatchCollection match = coreFile.filterPatterns!.correctAnswerRegexes[i].Matches(content);
                             hiddenContent = match[0].Value;
                             visibleEditedContent = content.Replace(hiddenContent, "").Trim();
-                            testId = coreFile.tempTest.testId;
                             rowType = RowType.CORRECT_ANSWER;
                         }
                         i++;
                     }
                     i = 0;
-                    while (!analized && i < coreFile.filterPatterns.wrongAnswerRegexes.Count)
+                    while (!analized && i < coreFile.filterPatterns!.wrongAnswerRegexes.Count)
                     {
-                        if (coreFile.filterPatterns.wrongAnswerRegexes[i].IsMatch(content))
+                        if (coreFile.filterPatterns!.wrongAnswerRegexes[i].IsMatch(content))
                         {
                             analized = true;
-                            MatchCollection match = coreFile.filterPatterns.wrongAnswerRegexes[i].Matches(content);
+                            MatchCollection match = coreFile.filterPatterns!.wrongAnswerRegexes[i].Matches(content);
                             hiddenContent = match[0].Value;
                             visibleEditedContent = content.Replace(hiddenContent, "").Trim();
-                            testId = coreFile.tempTest.testId;
                             rowType = RowType.WRONG_ANSWER;
                         }
                         i++;
@@ -190,14 +187,12 @@ namespace AssistantProcessor.Models
                         {
                             hiddenContent = "";
                             visibleEditedContent = content.Trim();
-                            testId = coreFile.tempTest.testId;
                             rowType = RowType.TASK;
                         }
                         else
                         {
                             hiddenContent = "";
                             visibleEditedContent = content.Trim();
-                            testId = coreFile.tempTest.testId;
                             rowType = RowType.WRONG_ANSWER;
                         }
                     }
